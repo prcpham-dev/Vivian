@@ -1,15 +1,27 @@
 import json, time, os, re
 from pathlib import Path
+from config import settings
 from typing import List, Optional, Dict
+from .constants import (
+    DEFAULT_IGNORE_PATTERNS, 
+    SUPPORTED_EXTENSIONS, 
+    DEFAULT_MAX_DEPTH, 
+    CACHE_FILE_NAME
+)
 
-from .constants import DEFAULT_IGNORE_PATTERNS, SUPPORTED_EXTENSIONS, DEFAULT_MAX_DEPTH, CACHE_FILE_NAME
 from .discovery import walk_repository_paths, read_file_contents
 from .file_parser import parse_file, load_path_aliases
 from .types import KnowledgeGraph, GraphNode, GraphRelationship, FunctionDef
 
-def add_relationship(relationships: List[GraphRelationship], rel_type: str, source_id: str, target_id: str, confidence: float = 1.0, reason: str = ""):
+def add_relationship(
+    relationships: List[GraphRelationship], 
+    rel_type: str, 
+    source_id: str, 
+    target_id: str, 
+    confidence: float = 1.0, 
+    reason: str = ""
+):
     rel_id = f"{rel_type}_{source_id}->{target_id}"
-    # Check if exists
     for r in relationships:
         if r["id"] == rel_id:
             return
@@ -115,7 +127,12 @@ def build_graph(
 
         _build_directory_hierarchy(rel_path, nodes_dict, relationships)
 
-    _track_function_calls_and_inheritance(nodes_dict, relationships, file_contents, class_locations)
+    _track_function_calls_and_inheritance(
+        nodes_dict, 
+        relationships, 
+        file_contents, 
+        class_locations
+    )
 
     node_list = list(nodes_dict.values())
 
@@ -125,7 +142,7 @@ def build_graph(
         timestamp=int(time.time() * 1000),
     )
 
-    print(f"[GraphBuilder] Done: {len(graph['nodes'])} nodes, {len(graph['relationships'])} relationships")
+    print("Done!")
     return graph
 
 def _build_directory_hierarchy(rel_path: str, nodes_dict: dict, relationships: List[GraphRelationship]):
@@ -148,7 +165,12 @@ def _build_directory_hierarchy(rel_path: str, nodes_dict: dict, relationships: L
         add_relationship(relationships, "CONTAINS", parent_id, current_id)
         current_id = parent_id
 
-def _track_function_calls_and_inheritance(nodes: dict, relationships: List[GraphRelationship], contents: dict, class_locations: dict):
+def _track_function_calls_and_inheritance(
+    nodes: dict,
+    relationships: List[GraphRelationship],
+    contents: dict,
+    class_locations: dict
+):
     imports_map = {}
     for r in relationships:
         if r["type"] == "IMPORTS":
@@ -196,14 +218,16 @@ def _track_function_calls_and_inheritance(nodes: dict, relationships: List[Graph
                     add_relationship(relationships, "CALLS", src, func_id)
 
 def save_cache(workspace_root: str, graph: KnowledgeGraph) -> None:
-    cache_path = Path(workspace_root) / CACHE_FILE_NAME
+    data_dir = settings.BASE_DIR / "data"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    cache_path = data_dir / CACHE_FILE_NAME
     try:
         cache_path.write_text(json.dumps(graph, indent=2), encoding="utf-8")
     except OSError:
         pass
 
 def load_cache(workspace_root: str) -> Optional[KnowledgeGraph]:
-    cache_path = Path(workspace_root) / CACHE_FILE_NAME
+    cache_path = settings.BASE_DIR / "data" / CACHE_FILE_NAME
     if not cache_path.exists(): return None
     try:
         data = json.loads(cache_path.read_text(encoding="utf-8"))
