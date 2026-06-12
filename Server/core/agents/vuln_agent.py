@@ -2,10 +2,10 @@ import json
 from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.graph import StateGraph, START, END
 
-from config import settings
 from .state import ScanState, VulnFinding
 from .prompts import VULN_SYSTEM_PROMPT
 from .context_loader import get_graph_context
+from core.settings_manager import get_llm
 
 async def run_vuln_scan(state: ScanState) -> dict:
     files = state.get("files", [])
@@ -30,7 +30,7 @@ async def run_vuln_scan(state: ScanState) -> dict:
             user_content += f"### {f.get('path')}\n```\n{f.get('content', '')[:2000]}\n```\n\n"
 
     # 3. Invoke LLM
-    response = await settings.LLM.ainvoke([
+    response = await get_llm().ainvoke([
         SystemMessage(content=VULN_SYSTEM_PROMPT),
         HumanMessage(content=user_content),
     ])

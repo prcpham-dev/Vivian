@@ -4,7 +4,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from core.agents.graph_chat import stream_chat
 from core.agents.vuln_agent import vuln_graph
 from core.agents.state import ScanState
-from config import settings
+from core.agents.chat_history import chat_db
 
 router = APIRouter(tags=["websocket"])
 
@@ -12,9 +12,6 @@ router = APIRouter(tags=["websocket"])
 @router.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket):
     await ws.accept()
-
-    api_key = ""
-    model = settings.DEFAULT_MODEL
 
     try:
         while True:
@@ -28,35 +25,53 @@ async def websocket_endpoint(ws: WebSocket):
 
             event = msg.get("event", "")
 
-            # Init — store api key + model for this connection
+            # Init — just acknowledge connection
             if event == "init":
-                api_key = msg.get("apiKey", "")
-                model = msg.get("model", settings.DEFAULT_MODEL)
                 await ws.send_json({"event": "ready"})
 
             # Chat — stream tokens
             elif event == "chat":
-                if not api_key:
-                    await ws.send_json({"event": "error", "message": "Send init first"})
-                    continue
                 try:
+                    workspace_root = msg.get("workspace_root")
+                    session_id = msg.get("session_id")
+                    
+                    if not workspace_root:
+                        await ws.send_json({"event": "error", "message": "workspace_root is required for chat"})
+                        continue
+                    if not session_id:
+                        await ws.send_json({"event": "error", "message": "session_id is required for chat"})
+                        continue
+                        
+                    user_text = msg.get("text", "")
+                    
+                    # 1. Load history from memory
+                    history = chat_db.get_session(workspace_root, session_id)
+                    
+                    # 2. Save user message immediately
+                    chat_db.add_message(workspace_root, session_id, "user", user_text)
+
+                    # 3. Stream AI response and collect full text
+                    full_response = ""
                     async for token in stream_chat(
-                        user_message=msg.get("text", ""),
-                        history=msg.get("history", []),
+                        workspace_root=workspace_root,
+                        user_message=user_text,
+                        history=history,
                         selected_node=msg.get("selected_node"),
-                        api_key=api_key,
-                        model=model,
                     ):
+                        # Some tokens might be tool notifications (e.g. "> *Vivian is running...*")
+                        # But typically we just append all emitted text to the history
+                        full_response += token
                         await ws.send_json({"event": "chatResponse", "text": token, "done": False})
+                        
+                    # 4. Save AI response to history
+                    chat_db.add_message(workspace_root, session_id, "assistant", full_response)
+                    
                     await ws.send_json({"event": "chatResponse", "text": "", "done": True})
                 except Exception as e:
                     await ws.send_json({"event": "error", "message": str(e)})
 
             # Scan — run vuln agents
             elif event == "scan":
-                if not api_key:
-                    await ws.send_json({"event": "error", "message": "Send init first"})
-                    continue
                 try:
                     target = msg.get("target", "directory")
                     files = msg.get("files", [])
@@ -67,8 +82,6 @@ async def websocket_endpoint(ws: WebSocket):
                     state = ScanState(
                         files=scan_files,
                         diff=diff or None,
-                        api_key=api_key,
-                        model=model,
                         scan_target=target,
                         findings=[],
                     )

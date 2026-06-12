@@ -4,23 +4,17 @@ from typing import List
 
 from core.agents.git_agent import run_git_assistant
 from core.agents.state import GitState
-from config import settings
+from core.settings_manager import get_model
 
 router = APIRouter(prefix="/git", tags=["git"])
 
-
 class GitSummarizeRequest(BaseModel):
     diff: str
-    api_key: str
-    model: str = settings.DEFAULT_MODEL
-
 
 @router.post("/summarize")
 async def git_summarize(req: GitSummarizeRequest):
     state = GitState(
         diff=req.diff,
-        api_key=req.api_key,
-        model=req.model,
     )
     result = await run_git_assistant(state)
     return {

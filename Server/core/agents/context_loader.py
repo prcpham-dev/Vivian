@@ -2,14 +2,13 @@ import os
 from pathlib import Path
 from typing import List
 from core.scanner.graph_builder import load_cache
-from config import settings
 
-def get_graph_context() -> str:
+def get_graph_context(workspace_root: str) -> str:
     """
     Loads the knowledge graph from disk and formats it into a highly compressed 
     string to provide a 'Table of Contents' map to the LLM in memory.
     """
-    graph = load_cache("")
+    graph = load_cache(workspace_root)
     if not graph:
         return "No codebase graph available. Rely on general knowledge."
 

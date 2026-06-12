@@ -6,8 +6,6 @@ class FunctionInfo(TypedDict, total=False):
     return_type: str
     line: int
 
-
-
 class FileContent(TypedDict, total=False):
     path: str
     content: str
@@ -23,16 +21,12 @@ class VulnFinding(TypedDict, total=False):
 class ScanState(TypedDict, total=False):
     files: List[FileContent]
     diff: Optional[str]
-    api_key: str
-    model: str
     scan_target: str
     target_node: Optional[str]
     findings: List[VulnFinding]
 
 class GitState(TypedDict, total=False):
     diff: str
-    api_key: str
-    model: str
     commit_message: str
     impact_summary: str
 
@@ -43,5 +37,3 @@ class ChatMessage(TypedDict, total=False):
 class ChatState(TypedDict, total=False):
     messages: List[ChatMessage]
     selected_node: Optional[Dict[str, Any]]
-    api_key: str
-    model: str

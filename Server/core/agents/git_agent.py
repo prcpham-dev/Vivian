@@ -1,11 +1,11 @@
 import json
 from langchain_core.messages import SystemMessage, HumanMessage
 
-from config import settings
 from .state import GitState
 from .prompts import GIT_ASSISTANT_PROMPT
 from .context_loader import get_graph_context
 from .vuln_agent import vuln_graph
+from core.settings_manager import get_llm
 
 async def run_git_assistant(state: GitState) -> dict:
     diff = state.get("diff", "")
@@ -36,7 +36,8 @@ async def run_git_assistant(state: GitState) -> dict:
     user_content = f"{graph_context}\n\n## Git Diff\n```diff\n{diff[:6000]}\n```\n{vuln_text}"
 
     # 4. Invoke LLM
-    response = await settings.LLM.ainvoke([
+    llm = get_llm()
+    response = await llm.ainvoke([
         SystemMessage(content=GIT_ASSISTANT_PROMPT),
         HumanMessage(content=user_content),
     ])
