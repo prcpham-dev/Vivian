@@ -8,18 +8,39 @@
 ## Architecture
 
 ```
-VSCode Extension (TypeScript)
-│   - Graph visualization (D3) + inline AI chat panel
-│   - File parser (extract imports + functions)
-│   - Smart graph filtering (exclude libs, vendor, generated files)
-│   - Spawns + talks to Python sidecar via localhost
-│
-└──► Python Sidecar (FastAPI + LangGraph)
-         - LLM calls (OpenRouter or direct)
-         - LangGraph agents (vuln scan, code analysis, git assistant)
-         - WebSocket streaming back to extension
-         - Receives: file content / graph JSON / git diff
-         - Returns: findings, chat responses, summaries
+Vivian/
+├── Client/                      # VSCode Extension (TypeScript)
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── esbuild.js
+│   ├── .gitignore
+│   ├── src/
+│   │   ├── extension.ts        # Extension entry point, spawns Python sidecar
+│   │   ├── graphGenerator.ts   # Walk, parse, track functions, build graph
+│   │   ├── cacheManager.ts     # Save/load graph cache
+│   │   ├── graphPanel.ts       # WebView panel, D3 setup, message routing
+│   │   ├── types.ts            # Type definitions (FileNode, Edge, FunctionDef)
+│   │   ├── services/
+│   │   │   ├── sidecarManager.ts  # Spawns & kills FastAPI server
+│   │   │   └── sidecarClient.ts   # WebSocket & REST communications
+│   │   └── utils/
+│   │       ├── constants.ts    # Default extension config, ignores
+│   │       └── logger.ts       # Output channel logging
+│   └── README.md
+├── Server/                      # Sidecar AI Backend (Python + FastAPI)
+│   ├── requirements.txt
+│   ├── main.py                 # FastAPI Web Server & Websocket setup
+│   ├── config.py               # Server configurations
+│   ├── agents/                 # LangGraph Agents
+│   │   ├── __init__.py
+│   │   ├── state.py            # LangGraph shared state schemas
+│   │   ├── vuln_agent.py       # Vuln scanners (parallel check)
+│   │   ├── refactor_agent.py   # Refactor advice builder
+│   │   ├── git_agent.py        # Git assistant diff summarizer
+│   │   └── graph_chat.py       # Codebase context-aware chat
+│   └── README.md
+├── PLAN.md                     # General project plan
+└── README.md                   # Repository README
 ```
 
 ---
