@@ -43,7 +43,6 @@ async def websocket_endpoint(ws: WebSocket):
                     async for token in stream_chat(
                         user_message=msg.get("text", ""),
                         history=msg.get("history", []),
-                        graph_summary=msg.get("graph_summary", []),
                         selected_node=msg.get("selected_node"),
                         api_key=api_key,
                         model=model,
