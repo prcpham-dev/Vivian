@@ -92,8 +92,8 @@ const TreeNode = ({ node, level, onCheck, checkedFiles, scannedFiles, onFileClic
   );
 }
 
-const FindingCard = ({ finding }: { finding: any }) => {
-  const [expanded, setExpanded] = useState(false);
+const FindingCard = ({ finding, initiallyExpanded = false }: { finding: any, initiallyExpanded?: boolean }) => {
+  const [expanded, setExpanded] = useState(initiallyExpanded);
   const sev = finding.severity?.toLowerCase() || 'high'; // Default to high if unknown
   const color = (sev === 'high' || sev === 'critical') ? '#f14c4c' : (sev === 'medium' ? '#f1b24c' : '#4cf177');
   
@@ -132,9 +132,9 @@ export default function App() {
   const [findings, setFindings] = useState<any[]>([]);
   const [scanning, setScanning] = useState(false);
 
-  const [gitDiffContent, setGitDiffContent] = useState<string>('');
   const [gitFindings, setGitFindings] = useState<any[]>([]);
   const [scanningGit, setScanningGit] = useState(false);
+  const [gitScanCompleted, setGitScanCompleted] = useState(false);
 
   useEffect(() => {
     const handleMessage = (event: any) => {
@@ -149,15 +149,12 @@ export default function App() {
         if (msg.filePath === activeFile) {
           setFileContent(msg.content);
         }
-      } else if (msg.command === 'gitDiffContent') {
-        setGitDiffContent(msg.diff);
       }
     };
     window.addEventListener('message', handleMessage);
     
     getVscode()?.postMessage({ command: 'requestFiles' });
     getVscode()?.postMessage({ command: 'requestGitChanges' });
-    getVscode()?.postMessage({ command: 'getGitDiff' });
     
     return () => window.removeEventListener('message', handleMessage);
   }, [activeFile]);
@@ -216,17 +213,21 @@ export default function App() {
   };
 
   const handleGitScan = async () => {
-    if (!gitDiffContent) return;
+    if (gitChanges.length === 0) return;
     setScanningGit(true);
     setGitFindings([]);
     try {
-      const res = await fetch(`http://localhost:${DEFAULT_PORT}/scan/diff`, {
+      const res = await fetch(`http://localhost:${DEFAULT_PORT}/scan/directory`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ diff: gitDiffContent })
+        body: JSON.stringify({ workspace_root: workspaceRoot, nodes: gitChanges })
       });
       const data = await res.json();
-      if (data.findings) setGitFindings(data.findings);
+      if (data.findings) {
+        setGitFindings(data.findings);
+      }
+      setGitScanCompleted(true);
+      setActiveFile(null);
     } catch (e) {
       console.error(e);
     } finally {
@@ -240,7 +241,7 @@ export default function App() {
       <div className="sidebar">
         <div className="sidebar-header tabs">
           <button className={`tab ${activeTab === 'files' ? 'active' : ''}`} onClick={() => setActiveTab('files')}>Files</button>
-          <button className={`tab ${activeTab === 'git' ? 'active' : ''}`} onClick={() => setActiveTab('git')}>Git Diff</button>
+          <button className={`tab ${activeTab === 'git' ? 'active' : ''}`} onClick={() => { setActiveTab('git'); setActiveFile(null); setGitScanCompleted(false); }}>Git Diff</button>
         </div>
         
         <div className="file-list" style={{ display: 'flex', flexDirection: 'column' }}>
@@ -270,8 +271,8 @@ export default function App() {
                  ))}
                </div>
                <div style={{ padding: '8px', borderTop: '1px solid var(--vscode-panel-border)' }}>
-                 <button className="git-button" style={{ width: '100%', justifyContent: 'center' }} onClick={handleGitScan} disabled={scanningGit || !gitDiffContent}>
-                   {scanningGit ? <><Loader2 size={14} className="spin" /> Scanning Diff...</> : 'Scan Vulnerabilities'}
+                 <button className="git-button" style={{ width: '100%', justifyContent: 'center' }} onClick={handleGitScan} disabled={scanningGit || gitChanges.length === 0}>
+                   {scanningGit ? <><Loader2 size={14} className="spin" /> Scanning Changes...</> : 'Scan Vulnerabilities'}
                  </button>
                </div>
              </div>
@@ -302,9 +303,17 @@ export default function App() {
             </button>
           </div>
         </div>
-        <div className="code-editor-placeholder">
+         <div className="code-editor-placeholder">
             {activeFile && fileContent !== null ? (
              <>
+               {scannedFiles.has(activeFile) && !findings.some((f: any) => { const p = f.file || f.path || ''; return p === activeFile || activeFile.endsWith(p); }) && (
+                 <div style={{ margin: '0 0 16px 0', padding: '12px', borderLeft: '4px solid #4cf177', backgroundColor: 'rgba(76, 241, 119, 0.05)', borderRadius: '4px' }}>
+                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                     <CheckCircle size={16} color="#4cf177" />
+                     <strong style={{ color: '#4cf177', fontSize: '13px' }}>No vulnerabilities found in this file</strong>
+                   </div>
+                 </div>
+               )}
                {fileContent.split('\n').map((line, idx) => {
                  const lineFindings = findings.filter((f: any) => {
                    const p = f.file || f.path || '';
@@ -333,12 +342,22 @@ export default function App() {
                  );
                })}
              </>
-           ) : !activeFile && gitFindings.length > 0 ? (
+           ) : !activeFile && (gitFindings.length > 0 || gitScanCompleted) ? (
              <div style={{ padding: '16px' }}>
                <h3 style={{ color: '#fff', marginBottom: '16px' }}>Diff Vulnerability Scan</h3>
-               {gitFindings.map((finding: any, i: number) => (
-                 <FindingCard key={i} finding={finding} />
-               ))}
+               {gitFindings.length === 0 ? (
+                 <div style={{ padding: '16px', backgroundColor: 'rgba(76, 241, 119, 0.05)', borderLeft: '4px solid #4cf177', borderRadius: '4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                      <CheckCircle size={16} color="#4cf177" />
+                      <strong style={{ color: '#4cf177' }}>No vulnerabilities found!</strong>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#ccc' }}>Your recent changes look secure and safe to merge.</p>
+                 </div>
+               ) : (
+                 gitFindings.map((finding: any, i: number) => (
+                   <FindingCard key={i} finding={finding} initiallyExpanded={true} />
+                 ))
+               )}
              </div>
            ) : (
              <div className="code-line"><span className="comment">{activeFile ? 'Loading file...' : 'Select a file from the sidebar to begin, or use Git Diff tools.'}</span></div>
