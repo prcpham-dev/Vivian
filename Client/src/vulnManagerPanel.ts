@@ -68,7 +68,7 @@ export class VulnManagerPanel {
         return
       }
       const { exec } = require('child_process')
-      exec('git status --porcelain', { cwd: workspaceRoot }, (err: any, stdout: string) => {
+      exec('git status --porcelain -uall', { cwd: workspaceRoot }, (err: any, stdout: string) => {
         let files: string[] = []
         if (stdout) {
           try {
@@ -137,13 +137,6 @@ export class VulnManagerPanel {
       } catch (err) {
         this.panel.webview.postMessage({ command: 'fileContent', filePath: msg.filePath, content: `Error reading file: ${err}` })
       }
-    } else if (msg.command === 'getGitDiff') {
-      const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
-      if (!workspaceRoot) return
-      const { exec } = require('child_process')
-      exec('git diff', { cwd: workspaceRoot }, (err: any, stdout: string) => {
-        this.panel.webview.postMessage({ command: 'gitDiffContent', diff: stdout || '' })
-      })
     }
   }
 
