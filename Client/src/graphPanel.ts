@@ -329,6 +329,74 @@ export class GraphPanel {
     animation: spin 0.8s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Chat button & drawer ────────────────────────────── */
+  #chat-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--vscode-button-background, #0e639c);
+    color: var(--vscode-button-foreground, #fff);
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    z-index: 2000;
+    transition: background 0.15s, transform 0.15s;
+  }
+  #chat-btn:hover { background: var(--vscode-button-hoverBackground, #1177bb); transform: scale(1.08); }
+
+  #chat-drawer {
+    position: fixed;
+    bottom: 72px;
+    right: 20px;
+    width: 320px;
+    height: 420px;
+    background: var(--vscode-sideBar-background, #252526);
+    border: 1px solid var(--vscode-panel-border, #444);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    z-index: 1999;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #chat-drawer.open { display: flex; }
+
+  #chat-drawer-header {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--vscode-panel-border, #444);
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  #close-chat-btn {
+    background: none;
+    border: none;
+    color: var(--vscode-icon-foreground, #c5c5c5);
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 2px 4px;
+  }
+
+  #chat-drawer-body {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--vscode-descriptionForeground, #888);
+    font-size: 12px;
+  }
 </style>
 </head>
 <body>
@@ -365,6 +433,15 @@ export class GraphPanel {
 </div>
 
 <div id="tooltip"></div>
+
+<button id="chat-btn" title="Open chat">💬</button>
+<div id="chat-drawer">
+  <div id="chat-drawer-header">
+    <span>Vivian Chat</span>
+    <button id="close-chat-btn" title="Close">×</button>
+  </div>
+  <div id="chat-drawer-body">Chat coming soon…</div>
+</div>
 
 <script nonce="${nonce}" src="https://d3js.org/d3.v7.min.js"></script>
 <script nonce="${nonce}">
@@ -807,6 +884,14 @@ export class GraphPanel {
       document.getElementById('search').focus()
     }
   })
+
+  // ── Chat drawer ───────────────────────────────────────
+  const chatBtn    = document.getElementById('chat-btn')
+  const chatDrawer = document.getElementById('chat-drawer')
+  const closeChatBtn = document.getElementById('close-chat-btn')
+
+  chatBtn.addEventListener('click', () => chatDrawer.classList.toggle('open'))
+  closeChatBtn.addEventListener('click', () => chatDrawer.classList.remove('open'))
 })()
 </script>
 </body>
