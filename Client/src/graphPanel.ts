@@ -64,6 +64,8 @@ export class GraphPanel {
       }
     } else if (msg.command === 'log') {
       log(`[WebView] ${msg.text}`)
+    } else if (msg.command === 'openVulnManager') {
+      vscode.commands.executeCommand('vivian.openVulnManager')
     }
   }
 
@@ -409,6 +411,7 @@ export class GraphPanel {
   <div class="filter-group" id="node-filters">
     <span style="font-size:11px;color:var(--vscode-descriptionForeground,#888)">Nodes:</span>
   </div>
+  <button id="switch-to-vuln-btn" title="Switch to Vulnerability Manager" style="margin-left: 8px; padding: 4px 10px; background: var(--vscode-button-background, #0e639c); color: var(--vscode-button-foreground, #fff); border: none; cursor: pointer; border-radius: 3px; font-size: 11px;">Vuln Manager</button>
   <span id="node-count"></span>
 </div>
 
@@ -525,6 +528,10 @@ export class GraphPanel {
   window.addEventListener('message', (event) => {
     const msg = event.data
     if (msg.command === 'loadGraph') renderGraph(msg.graph)
+  })
+
+  document.getElementById('switch-to-vuln-btn').addEventListener('click', () => {
+    vscode.postMessage({ command: 'openVulnManager' })
   })
 
   // ── Build filter chips ────────────────────────────────

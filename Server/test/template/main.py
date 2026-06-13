@@ -9,6 +9,7 @@ def main():
     print(greeting)
     
     print(a.get_privileges())
+    print(hellosss)
 
 if __name__ == "__main__":
     main()

@@ -1,15 +1,33 @@
 import * as vscode from 'vscode'
 import * as cp from 'child_process'
 import * as path from 'path'
+import * as fs from 'fs'
 import { log } from '../utils/logger'
 
 let sidecarProcess: cp.ChildProcess | undefined
 
-// Candidates in priority order; 'py' is the Windows launcher that works even
-// when 'python' and 'python3' are not on PATH.
 const PYTHON_CANDIDATES = ['python', 'python3', 'py']
 
-async function resolvePython(): Promise<string> {
+async function resolvePython(serverPath: string): Promise<string> {
+  const rootPath = path.join(serverPath, '..')
+  const venvPaths = [
+    path.join(serverPath, 'venv', 'bin', 'python'),
+    path.join(serverPath, 'venv', 'Scripts', 'python.exe'),
+    path.join(serverPath, '.venv', 'bin', 'python'),
+    path.join(serverPath, '.venv', 'Scripts', 'python.exe'),
+    path.join(rootPath, 'venv', 'bin', 'python'),
+    path.join(rootPath, 'venv', 'Scripts', 'python.exe'),
+    path.join(rootPath, '.venv', 'bin', 'python'),
+    path.join(rootPath, '.venv', 'Scripts', 'python.exe'),
+  ]
+
+  for (const venvPath of venvPaths) {
+    if (fs.existsSync(venvPath)) {
+      log(`Python found in venv: ${venvPath}`)
+      return venvPath
+    }
+  }
+
   for (const cmd of PYTHON_CANDIDATES) {
     try {
       await new Promise<void>((resolve, reject) => {
@@ -28,6 +46,36 @@ async function resolvePython(): Promise<string> {
   )
 }
 
+async function ensureDependencies(serverPath: string): Promise<string> {
+  let pythonPath = await resolvePython(serverPath)
+  const rootPath = path.join(serverPath, '..')
+
+  // If the resolved python is not inside the workspace (i.e. it's a global python),
+  // let's create a venv to keep things clean.
+  if (!pythonPath.includes(rootPath)) {
+    log(`Creating virtual environment in ${serverPath}/venv...`)
+    await new Promise<void>((resolve, reject) => {
+      const p = cp.spawn(pythonPath, ['-m', 'venv', 'venv'], { cwd: serverPath, shell: process.platform === 'win32' })
+      p.on('error', reject)
+      p.on('exit', (code) => (code === 0 ? resolve() : reject(new Error(`Failed to create venv (exit ${code})`))))
+    })
+    // Re-resolve to get the new venv python
+    pythonPath = await resolvePython(serverPath)
+  }
+
+  log(`Checking/installing dependencies using ${pythonPath}...`)
+  const reqPath = path.join(serverPath, '..', 'requirements.txt')
+  await new Promise<void>((resolve, reject) => {
+    const p = cp.spawn(pythonPath, ['-m', 'pip', 'install', '-r', reqPath], { cwd: serverPath, shell: process.platform === 'win32' })
+    p.stdout?.on('data', (d: Buffer) => log(`[pip] ${d.toString().trim()}`))
+    p.stderr?.on('data', (d: Buffer) => log(`[pip] ${d.toString().trim()}`))
+    p.on('error', reject)
+    p.on('exit', (code) => (code === 0 ? resolve() : reject(new Error(`pip install failed (exit ${code})`))))
+  })
+
+  return pythonPath
+}
+
 export async function startSidecar(extensionPath: string): Promise<void> {
   if (sidecarProcess) return
 
@@ -38,7 +86,7 @@ export async function startSidecar(extensionPath: string): Promise<void> {
 
   log(`Starting sidecar on port ${port} from ${serverPath}`)
 
-  const python = await resolvePython()
+  const python = await ensureDependencies(serverPath)
   const stderrLines: string[] = []
   let exited = false
   let exitCode: number | null = null
@@ -67,8 +115,8 @@ export async function startSidecar(extensionPath: string): Promise<void> {
       const tail = stderrLines.slice(-8).join('\n')
       throw new Error(
         `Sidecar process exited (code ${exitCode}) before health check passed.\n\n` +
-          (tail ? `Last output:\n${tail}\n\n` : '') +
-          'Make sure all Python dependencies are installed:\n  pip install -r Server/requirements.txt'
+        (tail ? `Last output:\n${tail}\n\n` : '') +
+        'Make sure all Python dependencies are installed:\n  pip install -r Server/requirements.txt'
       )
     }
   })
@@ -96,7 +144,7 @@ async function waitForHealth(
   checkExit()
   throw new Error(
     `Sidecar did not respond at ${healthUrl} after ${(retries * delayMs) / 1000}s.\n` +
-      'Check the Vivian output channel for details.'
+    'Check the Vivian output channel for details.'
   )
 }
 

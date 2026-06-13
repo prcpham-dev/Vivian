@@ -134,8 +134,13 @@ button {
   font-size: 12px;
 }
 
-.git-button:hover {
+.git-button:hover:not(:disabled) {
   background-color: var(--vscode-button-hoverBackground, #1177bb);
+}
+
+.git-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .code-editor-placeholder {
@@ -192,4 +197,81 @@ button {
   margin: 0;
   color: var(--vscode-editorHoverWidget-foreground, #ccc);
   font-size: 12px;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 0;
+  padding: 0;
+  border-bottom: 1px solid var(--vscode-panel-border, #333);
+}
+
+.tab {
+  flex: 1;
+  padding: 8px 12px;
+  background: transparent;
+  color: var(--vscode-sideBarTitle-foreground, #ccc);
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: center;
+}
+
+.tab.active {
+  border-bottom: 2px solid var(--vscode-focusBorder, #007fd4);
+  color: var(--vscode-foreground, #fff);
+}
+
+.tab:hover:not(.active) {
+  background: var(--vscode-list-hoverBackground, #2a2d2e);
+}
+
+/* Tree View */
+.tree-container, .git-container {
+  padding: 4px 0;
+}
+
+.tree-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  color: var(--vscode-list-inactiveSelectionForeground, #ccc);
+  user-select: none;
+}
+
+.tree-row:hover {
+  background-color: var(--vscode-list-hoverBackground, #2a2d2e);
+}
+
+.tree-row.active {
+  background-color: var(--vscode-list-activeSelectionBackground, #094771);
+  color: var(--vscode-list-activeSelectionForeground, #fff);
+}
+
+.folder-icon {
+  color: var(--vscode-icon-foreground, #c5c5c5);
+}
+
+.tree-checkbox {
+  margin: 0;
+  cursor: pointer;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
