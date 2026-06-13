@@ -1,0 +1,5 @@
+{
+  "VIVIAN_DEFAULT_MODEL": "gemini-2.5-flash",
+  "VIVIAN_PORT": "8765",
+  "VIVIAN_MAX_SCAN_FILES": "530"
+}

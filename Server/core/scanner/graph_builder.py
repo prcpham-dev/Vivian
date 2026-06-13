@@ -1,6 +1,6 @@
 import json, time, os, re
 from pathlib import Path
-from config import settings
+from core.settings_manager import BASE_DIR
 from typing import List, Optional, Dict
 from .constants import (
     DEFAULT_IGNORE_PATTERNS, 
@@ -9,6 +9,7 @@ from .constants import (
     CACHE_FILE_NAME
 )
 
+from core.settings_manager import get_project_dir
 from .discovery import walk_repository_paths, read_file_contents
 from .file_parser import parse_file, load_path_aliases
 from .types import KnowledgeGraph, GraphNode, GraphRelationship, FunctionDef
@@ -218,16 +219,16 @@ def _track_function_calls_and_inheritance(
                     add_relationship(relationships, "CALLS", src, func_id)
 
 def save_cache(workspace_root: str, graph: KnowledgeGraph) -> None:
-    data_dir = settings.BASE_DIR / "data"
-    data_dir.mkdir(parents=True, exist_ok=True)
-    cache_path = data_dir / CACHE_FILE_NAME
+    project_dir = get_project_dir(workspace_root)
+    cache_path = project_dir / CACHE_FILE_NAME
     try:
         cache_path.write_text(json.dumps(graph, indent=2), encoding="utf-8")
     except OSError:
         pass
 
 def load_cache(workspace_root: str) -> Optional[KnowledgeGraph]:
-    cache_path = settings.BASE_DIR / "data" / CACHE_FILE_NAME
+    project_dir = get_project_dir(workspace_root)
+    cache_path = project_dir / CACHE_FILE_NAME
     if not cache_path.exists(): return None
     try:
         data = json.loads(cache_path.read_text(encoding="utf-8"))

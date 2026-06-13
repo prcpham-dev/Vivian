@@ -1,63 +1,64 @@
-from langchain_openai import ChatOpenAI
+import json
 from langchain_core.messages import SystemMessage, HumanMessage
 
-from .state import GitState, CompactGraphNode
-from .prompts import GIT_SYSTEM
-from config import settings
+from .state import GitState
+from .prompts import GIT_ASSISTANT_PROMPT
+from .context_loader import get_graph_context
+from .vuln_agent import vuln_graph
+from core.settings_manager import get_llm
 
 async def run_git_assistant(state: GitState) -> dict:
-    """
-    LangGraph node: analyze a git diff and return commit message + impact summary.
-
-    TODO (Person 3): Enhance the prompt to:
-      - highlight breaking changes more explicitly
-      - suggest test files that should be updated
-      - detect if changelog or README needs updating
-    """
-    diff: str  = state.get("diff", "")
-    graph_summary = state.get("graph_summary", [])
-    api_key: str = state["api_key"]
-    model: str   = state["model"]
-
+    diff = state.get("diff", "")
+    
     if not diff.strip():
         return {
             "commit_message": "chore: (no staged changes detected)",
             "impact_summary": "No diff provided.",
         }
 
-    # Build a compact graph block for context
-    graph_lines = []
-    for node in graph_summary[:30]:  # limit to 30 files for token budget
-        graph_lines.append(
-            f"[{node.get('file')}] imports: {', '.join(node.get('imports_from', []))}"
-        )
-    graph_block = "\n".join(graph_lines) or "No graph context provided."
+    # 1. Run Security Scan on Diff
+    vuln_state = await vuln_graph.ainvoke({
+        "diff": diff,
+        "scan_target": "diff"
+    })
+    findings = vuln_state.get("findings", [])
+    
+    vuln_text = ""
+    if findings:
+        vuln_text = "\n\n## Findings:\n"
+        for f in findings:
+            vuln_text += f"- {f.get('title')}: {f.get('remediation')}\n"
 
-    user_content = f"## Codebase Graph (for impact context)\n{graph_block}\n\n## Git Diff\n```\n{diff[:6000]}\n```"
+    # 2. Get Graph Context
+    graph_context = get_graph_context()
 
-    llm = ChatOpenAI(
-        api_key=api_key,
-        base_url=settings.OPENROUTER_BASE_URL,
-        model=model,
-        max_tokens=1024,
-        streaming=False,
-    )
+    # 3. Build Prompt
+    user_content = f"{graph_context}\n\n## Git Diff\n```diff\n{diff[:6000]}\n```\n{vuln_text}"
 
+    # 4. Invoke LLM
+    llm = get_llm()
     response = await llm.ainvoke([
-        SystemMessage(content=GIT_SYSTEM),
+        SystemMessage(content=GIT_ASSISTANT_PROMPT),
         HumanMessage(content=user_content),
     ])
 
-    import json
+    # 5. Parse Response
     try:
-        result = json.loads(response.content.strip())
+        raw = response.content.strip()
+        if raw.startswith("```json"):
+            raw = raw[7:]
+        if raw.startswith("```"):
+            raw = raw[3:]
+        if raw.endswith("```"):
+            raw = raw[:-3]
+            
+        result = json.loads(raw)
         return {
-            "commit_message": result.get("commit_message", ""),
+            "commit_message": result.get("commit_message", "chore: updated files"),
             "impact_summary": result.get("impact_summary", ""),
         }
     except json.JSONDecodeError:
-        # Fallback: return raw content if JSON parse fails
         return {
-            "commit_message": "",
+            "commit_message": "chore: updated files",
             "impact_summary": response.content,
         }
