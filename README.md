@@ -2,6 +2,17 @@
 
 Vivian is an intelligent code analysis and vulnerability management tool. It consists of a VS Code extension (Client) and a Python backend service (Server).
 
+## Demo
+<video src="./Demo.mp4" controls width="100%"></video>
+*[Watch the Demonstration Video](./Demo.mp4)*
+
+## Features
+- **Structural Analysis**: Visualizes the relationships between files, classes, and functions within your workspace.
+- **Intuitive Interface**: Presents data as an interactive, easy-to-follow graph.
+- **AI Chatbot Integration**: Allows users to interact with an AI chatbot to analyze and gain deeper insights into the code structure.
+- **Security Auditing**: Directly scans files, checks Git commit history, and detects potential security vulnerabilities.
+- **Supported Languages**: Out-of-the-box support for `TypeScript/JavaScript` (.ts, .tsx, .js, .jsx), `Python` (.py), `Go` (.go), `Rust` (.rs), `Java` (.java), and `C/C++` (.c, .cpp, .h, .hpp).
+
 ## Project Structure
 
 ```text
@@ -11,6 +22,7 @@ Vivian/
 │   │   ├── services/       # Sidecar and external service communication (sidecarClient.ts, sidecarManager.ts)
 │   │   ├── utils/          # Constants and logging utilities
 │   │   ├── vulnManager/    # React Webview for the Vulnerability Manager UI (App.tsx, index.tsx, style.css)
+│   │   ├── graphApp/       # Vanilla JS Webview for the Code Graph and Chat UI (index.ts, style.css)
 │   │   ├── cacheManager.ts # Caching logic
 │   │   ├── extension.ts    # VS Code extension entry point
 │   │   ├── graphGenerator.ts
@@ -53,6 +65,13 @@ Vivian/
 ├── Demo.mp4                # Demonstration video
 └── PLAN.md                 # Project planning document
 ```
+
+## Architecture Notes
+
+- **Webview Architecture**: The Client extension bundles two completely standalone web frontend applications using `esbuild.js`.
+  - **Vulnerability Manager (`vulnManager`)**: A modern React-based user interface.
+  - **Code Graph (`graphApp`)**: A high-performance Vanilla JavaScript and D3.js UI handling complex DOM interactions and physics.
+- **Python Sidecar**: The `Server/` runs autonomously via FastAPI and communicates with the extension and webviews over WebSockets.
 
 ## Getting Started
 
