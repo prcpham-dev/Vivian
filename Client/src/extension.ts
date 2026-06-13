@@ -3,7 +3,6 @@ import * as path from 'path'
 import { GraphPanel } from './graphPanel'
 import { VulnManagerPanel } from './vulnManagerPanel'
 import { getOrBuildGraph } from './graphGenerator'
-import { hasGraphFile } from './cacheManager'
 import { startSidecar, stopSidecar } from './services/sidecarManager'
 import { log, disposeLogger } from './utils/logger'
 
@@ -33,9 +32,7 @@ async function openGraph(context: vscode.ExtensionContext, forceRebuild: boolean
     },
     async (progress) => {
       try {
-        const localGraphAvailable = hasGraphFile(workspaceRoot)
-
-        if (autoStart && !localGraphAvailable) {
+        if (autoStart) {
           progress.report({ message: 'Starting sidecar…' })
           await startSidecar(context.extensionPath)
         }

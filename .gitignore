@@ -3,6 +3,7 @@ venv
 .env
 .multica
 .claude
+CLAUDE.md
 *__pycache__
 out/
 node_modules/
