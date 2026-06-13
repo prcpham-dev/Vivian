@@ -3,9 +3,10 @@ from pathlib import Path
 from dotenv import load_dotenv, set_key
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-load_dotenv()
-
 BASE_DIR: Path = Path(__file__).resolve().parent.parent
+_ENV_PATH = BASE_DIR / ".env"
+
+load_dotenv(dotenv_path=_ENV_PATH)
 
 def get_project_dir(workspace_root: str) -> Path:
     """Returns a global storage directory for a specific workspace: ~/.vivian/projects/<safe_name>"""
@@ -18,7 +19,6 @@ def get_project_dir(workspace_root: str) -> Path:
     project_dir.mkdir(parents=True, exist_ok=True)
     return project_dir
 
-_ENV_PATH = BASE_DIR / ".env"
 _SETTINGS_JSON = BASE_DIR / "settings.json"
 
 def _read() -> dict:

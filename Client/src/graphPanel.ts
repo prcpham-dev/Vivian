@@ -22,7 +22,7 @@ export class GraphPanel {
     }
     const panel = vscode.window.createWebviewPanel(
       'vivianGraph',
-      'Vivian — Code Graph',
+      'Vivian: Code Graph',
       vscode.ViewColumn.One,
       {
         enableScripts: true,
@@ -41,7 +41,7 @@ export class GraphPanel {
     private readonly workspaceRoot: string
   ) {
     this.panel = panel
-    this.panel.webview.html = this.getHtml(getNonce())
+    this.panel.webview.html = this.getHtml(getNonce(), this.workspaceRoot)
     this.panel.onDidDispose(() => this.dispose(), null, this.disposables)
     this.panel.webview.onDidReceiveMessage((msg) => this.onMessage(msg), null, this.disposables)
     // Brief delay to let the webview JS initialize before sending data
@@ -74,14 +74,14 @@ export class GraphPanel {
     this.disposables = []
   }
 
-  private getHtml(nonce: string): string {
+  private getHtml(nonce: string, workspaceRoot: string): string {
     return /* html */ `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}' https://d3js.org; style-src 'unsafe-inline';">
-<title>Vivian — Code Graph</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}' https://d3js.org; style-src 'unsafe-inline'; connect-src ws://localhost:8765 http://localhost:8765;">
+<title>Vivian: Code Graph</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -329,6 +329,217 @@ export class GraphPanel {
     animation: spin 0.8s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Chat button & drawer ────────────────────────────── */
+  #chat-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--vscode-button-background, #0e639c);
+    color: var(--vscode-button-foreground, #fff);
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    z-index: 2000;
+    transition: background 0.15s, transform 0.15s;
+  }
+  #chat-btn:hover { background: var(--vscode-button-hoverBackground, #1177bb); transform: scale(1.08); }
+
+  #chat-drawer {
+    position: fixed;
+    bottom: 72px;
+    right: 20px;
+    width: 320px;
+    height: 460px;
+    background: var(--vscode-sideBar-background, #252526);
+    border: 1px solid var(--vscode-panel-border, #444);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    z-index: 1999;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #chat-drawer.open { display: flex; }
+
+  #chat-drawer-header {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--vscode-panel-border, #444);
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  #close-chat-btn {
+    background: none;
+    border: none;
+    color: var(--vscode-icon-foreground, #c5c5c5);
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 2px 4px;
+  }
+
+  #chat-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  #chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .chat-msg {
+    max-width: 88%;
+    padding: 7px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.5;
+    word-break: break-word;
+    white-space: pre-wrap;
+  }
+  .chat-msg.user {
+    align-self: flex-end;
+    background: var(--vscode-button-background, #0e639c);
+    color: var(--vscode-button-foreground, #fff);
+    border-bottom-right-radius: 2px;
+  }
+  .chat-msg.ai {
+    align-self: flex-start;
+    background: var(--vscode-editor-background, #1e1e1e);
+    color: var(--vscode-editor-foreground, #d4d4d4);
+    border: 1px solid var(--vscode-panel-border, #444);
+    border-bottom-left-radius: 2px;
+  }
+  .chat-msg.ai.streaming::after {
+    content: '\x15ae';
+    animation: blink 0.7s step-start infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .chat-status {
+    align-self: center;
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground, #888);
+    font-style: italic;
+  }
+
+  #chat-input-area {
+    display: flex;
+    gap: 6px;
+    padding: 8px 10px;
+    border-top: 1px solid var(--vscode-panel-border, #444);
+    align-items: flex-end;
+    flex-shrink: 0;
+  }
+  #chat-input {
+    flex: 1;
+    resize: none;
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--vscode-input-border, #555);
+    background: var(--vscode-input-background, #3c3c3c);
+    color: var(--vscode-input-foreground, #d4d4d4);
+    font-size: 12px;
+    font-family: var(--vscode-font-family, 'Segoe UI', sans-serif);
+    outline: none;
+    line-height: 1.4;
+    max-height: 80px;
+    overflow-y: auto;
+  }
+  #chat-input:focus { border-color: var(--vscode-focusBorder, #007acc); }
+  #chat-send-btn {
+    padding: 6px 12px;
+    background: var(--vscode-button-background, #0e639c);
+    color: var(--vscode-button-foreground, #fff);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  #chat-send-btn:hover { background: var(--vscode-button-hoverBackground, #1177bb); }
+  #chat-send-btn:disabled { opacity: 0.45; cursor: default; }
+
+  /* ── API key section ─────────────────────────────────── */
+  #api-key-section {
+    border-bottom: 1px solid var(--vscode-panel-border, #444);
+    padding: 8px 12px;
+    flex-shrink: 0;
+  }
+  #api-key-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  #api-key-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--vscode-descriptionForeground, #888);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  #api-key-toggle-btn {
+    background: none;
+    border: none;
+    color: var(--vscode-icon-foreground, #c5c5c5);
+    cursor: pointer;
+    font-size: 10px;
+    padding: 0 2px;
+    line-height: 1;
+  }
+  #api-key-form-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+  #api-key-input {
+    flex: 1;
+    padding: 5px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--vscode-input-border, #555);
+    background: var(--vscode-input-background, #3c3c3c);
+    color: var(--vscode-input-foreground, #d4d4d4);
+    font-size: 11px;
+    font-family: var(--vscode-font-family, 'Segoe UI', sans-serif);
+    outline: none;
+  }
+  #api-key-input:focus { border-color: var(--vscode-focusBorder, #007acc); }
+  #api-key-save-btn {
+    padding: 4px 10px;
+    background: var(--vscode-button-background, #0e639c);
+    color: var(--vscode-button-foreground, #fff);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  #api-key-save-btn:hover { background: var(--vscode-button-hoverBackground, #1177bb); }
+  #api-key-save-btn:disabled { opacity: 0.45; cursor: default; }
+  #api-key-status {
+    font-size: 10px;
+    color: var(--vscode-descriptionForeground, #888);
+    min-height: 13px;
+  }
 </style>
 </head>
 <body>
@@ -365,6 +576,32 @@ export class GraphPanel {
 </div>
 
 <div id="tooltip"></div>
+
+<button id="chat-btn" title="Open chat">&#x1F4AC;</button>
+<div id="chat-drawer">
+  <div id="chat-drawer-header">
+    <span>Vivian Chat</span>
+    <button id="close-chat-btn" title="Close">&#xD7;</button>
+  </div>
+  <div id="chat-body">
+    <div id="api-key-section">
+      <div id="api-key-header">
+        <span id="api-key-label">Gemini API Key</span>
+        <button id="api-key-toggle-btn" title="Toggle">&#x25BC;</button>
+      </div>
+      <div id="api-key-form-row">
+        <input type="password" id="api-key-input" placeholder="Paste API key&#x2026;" autocomplete="off">
+        <button id="api-key-save-btn">Save</button>
+      </div>
+      <div id="api-key-status"></div>
+    </div>
+    <div id="chat-messages"></div>
+    <div id="chat-input-area">
+      <textarea id="chat-input" placeholder="Ask Vivian&#x2026;" rows="2"></textarea>
+      <button id="chat-send-btn">Send</button>
+    </div>
+  </div>
+</div>
 
 <script nonce="${nonce}" src="https://d3js.org/d3.v7.min.js"></script>
 <script nonce="${nonce}">
@@ -807,6 +1044,194 @@ export class GraphPanel {
       document.getElementById('search').focus()
     }
   })
+
+  // ── Chat drawer & WebSocket ───────────────────────────
+  const WORKSPACE_ROOT = ${JSON.stringify(workspaceRoot)}
+  const WS_URL = 'ws://localhost:8765/ws'
+
+  const chatBtn      = document.getElementById('chat-btn')
+  const chatDrawer   = document.getElementById('chat-drawer')
+  const closeChatBtn = document.getElementById('close-chat-btn')
+  const chatMessages = document.getElementById('chat-messages')
+  const chatInput    = document.getElementById('chat-input')
+  const chatSendBtn  = document.getElementById('chat-send-btn')
+
+  chatBtn.addEventListener('click', () => chatDrawer.classList.toggle('open'))
+  closeChatBtn.addEventListener('click', () => chatDrawer.classList.remove('open'))
+
+  let ws = null
+  let wsReady = false
+  let currentAiMsg = null
+
+  function appendMsg(role, text) {
+    const div = document.createElement('div')
+    div.className = 'chat-msg ' + role
+    div.textContent = text
+    chatMessages.appendChild(div)
+    chatMessages.scrollTop = chatMessages.scrollHeight
+    return div
+  }
+
+  function appendStatus(text) {
+    const div = document.createElement('div')
+    div.className = 'chat-status'
+    div.textContent = text
+    chatMessages.appendChild(div)
+    chatMessages.scrollTop = chatMessages.scrollHeight
+    return div
+  }
+
+  function setSendEnabled(enabled) {
+    chatSendBtn.disabled = !enabled
+    chatInput.disabled = !enabled
+  }
+
+  function connectWs() {
+    const statusEl = appendStatus('Connecting…')
+    ws = new WebSocket(WS_URL)
+
+    ws.onopen = () => {
+      ws.send(JSON.stringify({ event: 'init' }))
+    }
+
+    ws.onmessage = (ev) => {
+      let data
+      try { data = JSON.parse(ev.data) } catch { return }
+
+      if (data.event === 'ready') {
+        statusEl.remove()
+        setSendEnabled(true)
+        wsReady = true
+      } else if (data.event === 'chatResponse') {
+        if (!currentAiMsg) {
+          currentAiMsg = appendMsg('ai', '')
+          currentAiMsg.classList.add('streaming')
+        }
+        if (data.done) {
+          currentAiMsg.classList.remove('streaming')
+          currentAiMsg = null
+          setSendEnabled(true)
+        } else {
+          currentAiMsg.textContent += data.text
+          chatMessages.scrollTop = chatMessages.scrollHeight
+        }
+      } else if (data.event === 'error') {
+        if (currentAiMsg) {
+          currentAiMsg.classList.remove('streaming')
+          currentAiMsg = null
+        }
+        appendMsg('ai', 'Error: ' + (data.message || 'unknown'))
+        setSendEnabled(true)
+      }
+    }
+
+    ws.onclose = () => {
+      wsReady = false
+      setSendEnabled(false)
+      if (currentAiMsg) {
+        currentAiMsg.classList.remove('streaming')
+        currentAiMsg = null
+      }
+      appendStatus('Disconnected... reconnecting…')
+      setTimeout(connectWs, 3000)
+    }
+
+    ws.onerror = () => ws.close()
+  }
+
+  function sendMessage() {
+    const text = chatInput.value.trim()
+    if (!text || !wsReady) return
+    appendMsg('user', text)
+    chatInput.value = ''
+    setSendEnabled(false)
+    currentAiMsg = null
+    const node = selectedNode
+      ? { id: selectedNode.id, label: selectedNode.label, type: selectedNode.type }
+      : null
+    ws.send(JSON.stringify({
+      event: 'chat',
+      workspace_root: WORKSPACE_ROOT,
+      text: text,
+      selected_node: node,
+    }))
+  }
+
+  chatSendBtn.addEventListener('click', sendMessage)
+  chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      sendMessage()
+    }
+  })
+
+  // ── API Key section ───────────────────────────────────
+  const API_BASE       = 'http://localhost:8765'
+  const apiKeySection  = document.getElementById('api-key-section')
+  const apiKeyFormRow  = document.getElementById('api-key-form-row')
+  const apiKeyInput    = document.getElementById('api-key-input')
+  const apiKeySaveBtn  = document.getElementById('api-key-save-btn')
+  const apiKeyStatus   = document.getElementById('api-key-status')
+  const apiKeyToggleBtn = document.getElementById('api-key-toggle-btn')
+
+  function setKeyFormVisible(visible) {
+    apiKeyFormRow.style.display = visible ? 'flex' : 'none'
+    apiKeyToggleBtn.textContent = visible ? '▲' : '▼'
+  }
+
+  async function loadApiKeyStatus() {
+    try {
+      const res = await fetch(API_BASE + '/settings/api-key')
+      const data = await res.json()
+      if (data.api_key_set) {
+        apiKeyStatus.textContent = 'API key is set'
+        setKeyFormVisible(false)
+      } else {
+        apiKeyStatus.textContent = 'No API key! Enter one to enable chat'
+        setKeyFormVisible(true)
+      }
+    } catch {
+      apiKeyStatus.textContent = ''
+    }
+  }
+
+  apiKeyToggleBtn.addEventListener('click', () => {
+    setKeyFormVisible(apiKeyFormRow.style.display === 'none')
+  })
+
+  apiKeySaveBtn.addEventListener('click', async () => {
+    const key = apiKeyInput.value.trim()
+    if (!key) return
+    apiKeySaveBtn.disabled = true
+    apiKeyStatus.textContent = 'Saving…'
+    try {
+      const res = await fetch(API_BASE + '/settings/api-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ api_key: key }),
+      })
+      if (res.ok) {
+        apiKeyInput.value = ''
+        apiKeyStatus.textContent = 'API key saved'
+        setKeyFormVisible(false)
+      } else {
+        apiKeyStatus.textContent = 'Failed to save key'
+      }
+    } catch {
+      apiKeyStatus.textContent = 'Error: is the server running?'
+    } finally {
+      apiKeySaveBtn.disabled = false
+    }
+  })
+
+  apiKeyInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') apiKeySaveBtn.click()
+  })
+
+  loadApiKeyStatus()
+
+  setSendEnabled(false)
+  connectWs()
 })()
 </script>
 </body>
