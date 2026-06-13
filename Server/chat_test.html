@@ -17,7 +17,7 @@
         <h1>Test Vivian WebSocket</h1>
         <div class="config-bar">
             <input type="text" id="workspaceInput" placeholder="Workspace Path (e.g. /Users/prc/project)" value="/Users/prc.__/Documents/codeMics/Vivian/Server/test/template" />
-            <input type="text" id="sessionInput" placeholder="Session ID" />
+            <button onclick="clearChat()">Clear Chat</button>
         </div>
         <div id="messages"></div>
         <form action="" onsubmit="sendMessage(event)">
@@ -29,8 +29,14 @@
             var ws = new WebSocket(`ws://${window.location.host}/ws`);
             var currentBotMessage = null;
             
-            // Auto-generate a random session ID on load
-            document.getElementById("sessionInput").value = "session-" + Math.random().toString(36).substr(2, 9);
+            function clearChat() {
+                var workspace = document.getElementById("workspaceInput").value;
+                if (!workspace) return alert("Enter workspace path");
+                fetch(`/chat/start?workspace_root=${encodeURIComponent(workspace)}`, {method: 'POST'})
+                    .then(() => {
+                        document.getElementById('messages').innerHTML = '<i>Chat history cleared!</i><br><br>';
+                    });
+            }
 
             ws.onopen = function() {
                 ws.send(JSON.stringify({event: "init"}));
@@ -58,10 +64,9 @@
                 var input = document.getElementById("messageText");
                 var text = input.value;
                 var workspace = document.getElementById("workspaceInput").value;
-                var sessionId = document.getElementById("sessionInput").value;
                 
-                if (!workspace || !sessionId) {
-                    alert("Please provide both Workspace Path and Session ID!");
+                if (!workspace) {
+                    alert("Please provide Workspace Path!");
                     event.preventDefault();
                     return;
                 }
@@ -74,7 +79,6 @@
                 ws.send(JSON.stringify({
                     event: "chat", 
                     workspace_root: workspace,
-                    session_id: sessionId,
                     text: text
                 }));
                 

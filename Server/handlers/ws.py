@@ -33,22 +33,18 @@ async def websocket_endpoint(ws: WebSocket):
             elif event == "chat":
                 try:
                     workspace_root = msg.get("workspace_root")
-                    session_id = msg.get("session_id")
                     
                     if not workspace_root:
                         await ws.send_json({"event": "error", "message": "workspace_root is required for chat"})
-                        continue
-                    if not session_id:
-                        await ws.send_json({"event": "error", "message": "session_id is required for chat"})
                         continue
                         
                     user_text = msg.get("text", "")
                     
                     # 1. Load history from memory
-                    history = chat_db.get_session(workspace_root, session_id)
+                    history = chat_db.get_history(workspace_root)
                     
                     # 2. Save user message immediately
-                    chat_db.add_message(workspace_root, session_id, "user", user_text)
+                    chat_db.add_message(workspace_root, "user", user_text)
 
                     # 3. Stream AI response and collect full text
                     full_response = ""
@@ -64,7 +60,7 @@ async def websocket_endpoint(ws: WebSocket):
                         await ws.send_json({"event": "chatResponse", "text": token, "done": False})
                         
                     # 4. Save AI response to history
-                    chat_db.add_message(workspace_root, session_id, "assistant", full_response)
+                    chat_db.add_message(workspace_root, "assistant", full_response)
                     
                     await ws.send_json({"event": "chatResponse", "text": "", "done": True})
                 except Exception as e:

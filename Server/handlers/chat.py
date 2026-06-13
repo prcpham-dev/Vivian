@@ -9,31 +9,17 @@ class AddMessageRequest(BaseModel):
     role: str = "user"
     content: str
 
+@router.post("/start")
+def start_chat(workspace_root: str):
+    """Starts a new chat by clearing the history for the workspace."""
+    chat_db.clear_history(workspace_root)
+    return {"status": "success", "message": "Chat history cleared."}
 
-@router.post("/sessions")
-def create_session(workspace_root: str):
-    session_id = chat_db.create_session(workspace_root)
-    return {"session_id": session_id}
+@router.get("/history")
+def get_history(workspace_root: str):
+    return chat_db.get_history(workspace_root)
 
-@router.get("/sessions")
-def get_sessions(workspace_root: str):
-    return chat_db.get_all_sessions(workspace_root)
-
-@router.get("/sessions/{session_id}")
-def get_session_history(workspace_root: str, session_id: str):
-    return chat_db.get_session(workspace_root, session_id)
-
-@router.delete("/sessions/{session_id}")
-def delete_session(workspace_root: str, session_id: str):
-    chat_db.delete_session(workspace_root, session_id)
+@router.post("/clear")
+def clear_history(workspace_root: str):
+    chat_db.clear_history(workspace_root)
     return {"status": "success"}
-
-@router.post("/sessions/{session_id}/messages")
-def add_message(workspace_root: str, session_id: str, req: AddMessageRequest):
-    chat_db.add_message(workspace_root, session_id, req.role, req.content)
-    return {
-        "status": "success", 
-        "history": chat_db.get_session(workspace_root, session_id)
-    }
-
-
