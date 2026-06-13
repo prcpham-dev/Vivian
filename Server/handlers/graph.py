@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List, Optional
 
-from core.scanner.graph_builder import build_graph, save_cache, load_cache
+from core.scanner.graph_builder import build_graph, save_graph_file, save_cache, load_cache
 
 router = APIRouter(prefix="/graph", tags=["graph"])
 
@@ -25,6 +25,7 @@ def graph_build(req: BuildGraphRequest):
         ignore_patterns=req.ignore_patterns,
         max_depth=req.max_depth,
     )
+    save_graph_file(req.workspace_root, graph)
     if req.cache:
         save_cache(req.workspace_root, graph)
     return graph
