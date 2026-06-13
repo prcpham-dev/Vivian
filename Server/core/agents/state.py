@@ -19,6 +19,7 @@ class VulnFinding(TypedDict, total=False):
     line: Optional[int]
 
 class ScanState(TypedDict, total=False):
+    workspace_root: str
     files: List[FileContent]
     diff: Optional[str]
     scan_target: str

@@ -14,7 +14,7 @@ Interactive D3 force-directed code graph rendered inside a VSCode WebView panel.
 
 ## Setup
 
-```bash
+```bashz
 cd Client
 npm install
 npm run build

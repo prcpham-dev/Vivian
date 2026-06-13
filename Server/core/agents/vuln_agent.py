@@ -11,9 +11,10 @@ async def run_vuln_scan(state: ScanState) -> dict:
     files = state.get("files", [])
     diff = state.get("diff")
     scan_target = state.get("scan_target")
+    workspace_root = state.get("workspace_root", "")
     
     # 1. Load Graph Context
-    graph_context = get_graph_context()
+    graph_context = get_graph_context(workspace_root) if workspace_root else "No workspace root provided."
     
     # 2. Build User Content
     user_content = f"{graph_context}\n\n"
@@ -30,10 +31,12 @@ async def run_vuln_scan(state: ScanState) -> dict:
             user_content += f"### {f.get('path')}\n```\n{f.get('content', '')[:2000]}\n```\n\n"
 
     # 3. Invoke LLM
+    print(f"[VulnAgent] Scanning target={scan_target}, num_files={len(files)}")
     response = await get_llm().ainvoke([
         SystemMessage(content=VULN_SYSTEM_PROMPT),
         HumanMessage(content=user_content),
     ])
+    print(f"[VulnAgent] LLM returned {len(response.content)} chars.")
     
     # 4. Parse Findings
     findings = []
