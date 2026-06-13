@@ -3,10 +3,11 @@ from pathlib import Path
 from core.settings_manager import BASE_DIR
 from typing import List, Optional, Dict
 from .constants import (
-    DEFAULT_IGNORE_PATTERNS, 
-    SUPPORTED_EXTENSIONS, 
-    DEFAULT_MAX_DEPTH, 
-    CACHE_FILE_NAME
+    DEFAULT_IGNORE_PATTERNS,
+    SUPPORTED_EXTENSIONS,
+    DEFAULT_MAX_DEPTH,
+    CACHE_FILE_NAME,
+    GRAPH_FILE_NAME,
 )
 
 from core.settings_manager import get_project_dir
@@ -217,6 +218,13 @@ def _track_function_calls_and_inheritance(
                     func.setdefault("calledBy", []).append(src)
                     func_id = f"{tgt}::{func_name}"
                     add_relationship(relationships, "CALLS", src, func_id)
+
+def save_graph_file(workspace_root: str, graph: KnowledgeGraph) -> None:
+    graph_path = Path(workspace_root) / GRAPH_FILE_NAME
+    try:
+        graph_path.write_text(json.dumps(graph, indent=2), encoding="utf-8")
+    except OSError:
+        pass
 
 def save_cache(workspace_root: str, graph: KnowledgeGraph) -> None:
     project_dir = get_project_dir(workspace_root)
