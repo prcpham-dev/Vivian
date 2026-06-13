@@ -1,6 +1,7 @@
 import * as vscode from 'vscode'
 import * as path from 'path'
 import { GraphPanel } from './graphPanel'
+import { VulnManagerPanel } from './vulnManagerPanel'
 import { getOrBuildGraph } from './graphGenerator'
 import { hasGraphFile } from './cacheManager'
 import { startSidecar, stopSidecar } from './services/sidecarManager'
@@ -10,7 +11,10 @@ export function activate(context: vscode.ExtensionContext): void {
   log('Vivian activated')
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('vivian.openGraph', () => openGraph(context, false))
+    vscode.commands.registerCommand('vivian.openGraph', () => openGraph(context, false)),
+    vscode.commands.registerCommand('vivian.openVulnManager', () => {
+      VulnManagerPanel.create(context)
+    })
   )
 }
 

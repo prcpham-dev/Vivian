@@ -1,8 +1,10 @@
-./Trojan
-./Atlasic
 DS_Store
 venv
 .env
 .multica
 .claude
 *__pycache__
+out/
+node_modules/
+*.vsix
+.vscode-test/

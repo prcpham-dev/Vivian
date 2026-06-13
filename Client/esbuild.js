@@ -6,7 +6,6 @@ const baseOpts = {
   bundle: true,
   minify: isProd,
   sourcemap: !isProd,
-  external: ['vscode'],
 }
 
 async function build() {
@@ -16,13 +15,26 @@ async function build() {
     outfile: 'out/extension.js',
     platform: 'node',
     format: 'cjs',
+    external: ['vscode'],
   })
+
+  const webviewCtx = await esbuild.context({
+    ...baseOpts,
+    entryPoints: ['src/vulnManager/index.tsx'],
+    outfile: 'out/vulnManager.js',
+    platform: 'browser',
+    format: 'iife',
+  })
+
   if (isWatch) {
     await ctx.watch()
+    await webviewCtx.watch()
     console.log('Watching...')
   } else {
     await ctx.rebuild()
+    await webviewCtx.rebuild()
     await ctx.dispose()
+    await webviewCtx.dispose()
     console.log('Build complete.')
   }
 }
