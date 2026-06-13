@@ -1,9 +1,8 @@
 # Vivian
 
-Vivian is an intelligent code analysis and vulnerability management tool. It consists of a VS Code extension (Client) and a Python backend service (Server).
+Vivian is an intelligent code analysis tool designed to visualize the codebase as an interactive graph, making it easier for both developers and AI agents to read, follow, and understand code structure. While it includes vulnerability management capabilities, its primary focus is on structural visualization and agentic interaction. It consists of a VS Code extension (Client) and a Python backend service (Server).
 
 ## Demo
-<video src="./Demo.mp4" controls width="100%"></video>
 *[Watch the Demonstration Video](./Demo.mp4)*
 
 ## Features
