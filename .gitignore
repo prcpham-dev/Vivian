@@ -3,4 +3,6 @@
 DS_Store
 venv
 .env
+.multica
+.claude
 *__pycache__
