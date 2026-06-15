@@ -17,7 +17,7 @@ export class VulnManagerPanel {
       {
         enableScripts: true,
         retainContextWhenHidden: true,
-        localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'out')],
+        localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'Client', 'out')],
       }
     )
     VulnManagerPanel.current = new VulnManagerPanel(panel, context)
@@ -149,8 +149,8 @@ export class VulnManagerPanel {
 
   private getHtml(): string {
     const webview = this.panel.webview
-    const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'out', 'vulnManager.js'))
-    const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'out', 'vulnManager.css'))
+    const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'Client', 'out', 'vulnManager.js'))
+    const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'Client', 'out', 'vulnManager.css'))
 
     const nonce = getNonce()
 
