@@ -36,6 +36,12 @@ We built Vivian using a modern, multi-layered tech stack:
 *   **Simplified Prompting:** Right now, users sometimes have to provide a lot of manual context in their prompts. We want to automate context-gathering so the prompting experience is frictionless.
 *   **UI/UX Polish:** We will continue to refine and simplify the user interface to make the graph navigation and chat experience as intuitive as possible.
 
+## Prerequisites
+
+Before running the setup scripts, please ensure you have the following installed on your machine:
+- [Node.js](https://nodejs.org/) (required to build the VS Code extension)
+- [Python 3.8+](https://www.python.org/downloads/) (required for the backend server)
+
 ## Installation and Setup
 
 The easiest way to build the extension and install the required Python dependencies is to use the provided setup scripts. These scripts will automatically install the Node dependencies, package the VS Code extension, and create the Python virtual environment for the backend server.
