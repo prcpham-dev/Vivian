@@ -114,11 +114,19 @@ export class GraphPanel {
     flex-wrap: wrap;
   }
 
-  #toolbar input[type="text"] {
+  .search-container {
     flex: 1;
     min-width: 140px;
     max-width: 260px;
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  #toolbar .search-container input[type="text"] {
+    width: 100%;
     padding: 4px 8px;
+    padding-right: 46px;
     border-radius: 4px;
     border: 1px solid var(--vscode-input-border, #555);
     background: var(--vscode-input-background, #3c3c3c);
@@ -127,8 +135,27 @@ export class GraphPanel {
     outline: none;
   }
 
-  #toolbar input[type="text"]:focus {
+  #toolbar .search-container input[type="text"]:focus {
     border-color: var(--vscode-focusBorder, #007acc);
+  }
+
+  #clear-search-btn {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--vscode-button-secondaryBackground, #3a3d41);
+    color: var(--vscode-button-secondaryForeground, #ffffff);
+    border: 1px solid var(--vscode-contrastBorder, transparent);
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 10px;
+    padding: 2px 6px;
+    display: none;
+  }
+
+  #clear-search-btn:hover {
+    background: var(--vscode-button-secondaryHoverBackground, #45494e);
   }
 
   .filter-group {
@@ -556,7 +583,10 @@ export class GraphPanel {
 <body>
 
 <div id="toolbar">
-  <input type="text" id="search" placeholder="Search nodes…" autocomplete="off">
+  <div class="search-container">
+    <input type="text" id="search" placeholder="Search nodes…" autocomplete="off">
+    <button id="clear-search-btn" title="Clear search">Clear</button>
+  </div>
   <div class="filter-group" id="rel-filters">
     <span style="font-size:11px;color:var(--vscode-descriptionForeground,#888)">Show:</span>
   </div>
@@ -1061,9 +1091,26 @@ export class GraphPanel {
   }
 
   // ── Search ───────────────────────────────────────────
-  document.getElementById('search').addEventListener('input', applyFilters)
-  document.getElementById('search').addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') { e.target.value = ''; applyFilters() }
+  const searchInput = document.getElementById('search')
+  const clearSearchBtn = document.getElementById('clear-search-btn')
+
+  searchInput.addEventListener('input', (e) => {
+    clearSearchBtn.style.display = searchInput.value ? 'block' : 'none'
+    applyFilters()
+  })
+
+  clearSearchBtn.addEventListener('click', () => {
+    searchInput.value = ''
+    clearSearchBtn.style.display = 'none'
+    applyFilters()
+  })
+
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      e.target.value = ''
+      clearSearchBtn.style.display = 'none'
+      applyFilters()
+    }
   })
 
   // ── Helpers ──────────────────────────────────────────

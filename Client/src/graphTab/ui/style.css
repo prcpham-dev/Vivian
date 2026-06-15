@@ -6,6 +6,7 @@
   margin: 0;
   padding: 0;
 }
+
 body {
   font-family: var(--vscode-font-family, "Segoe UI", sans-serif);
   font-size: 13px;
@@ -16,6 +17,7 @@ body {
   display: flex;
   flex-direction: column;
 }
+
 #toolbar {
   display: flex;
   align-items: center;
@@ -26,11 +28,20 @@ body {
   flex-shrink: 0;
   flex-wrap: wrap;
 }
-#toolbar input[type=text] {
+
+.search-container {
   flex: 1;
   min-width: 140px;
   max-width: 260px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+#toolbar .search-container input[type=text] {
+  width: 100%;
   padding: 4px 8px;
+  padding-right: 46px;
   border-radius: 4px;
   border: 1px solid var(--vscode-input-border, #555);
   background: var(--vscode-input-background, #3c3c3c);
@@ -38,15 +49,34 @@ body {
   font-size: 12px;
   outline: none;
 }
-#toolbar input[type=text]:focus {
+#toolbar .search-container input[type=text]:focus {
   border-color: var(--vscode-focusBorder, #007acc);
 }
+#clear-search-btn {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--vscode-button-secondaryBackground, #3a3d41);
+  color: var(--vscode-button-secondaryForeground, #ffffff);
+  border: 1px solid var(--vscode-contrastBorder, transparent);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 10px;
+  padding: 2px 6px;
+  display: none;
+}
+#clear-search-btn:hover {
+  background: var(--vscode-button-secondaryHoverBackground, #45494e);
+}
+
 .filter-group {
   display: flex;
   gap: 6px;
   align-items: center;
   flex-wrap: wrap;
 }
+
 .chip {
   display: inline-flex;
   align-items: center;
@@ -60,82 +90,100 @@ body {
   opacity: 0.6;
   transition: opacity 0.15s, border-color 0.15s;
 }
+
 .chip.active {
   opacity: 1;
   border-color: currentColor;
 }
+
 .chip-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
 }
+
 #node-count {
   margin-left: auto;
   font-size: 11px;
   color: var(--vscode-descriptionForeground, #888);
   white-space: nowrap;
 }
+
 #main {
   display: flex;
   flex: 1;
   overflow: hidden;
   position: relative;
 }
+
 #graph-container {
   flex: 1;
   position: relative;
   overflow: hidden;
 }
+
 svg {
   width: 100%;
   height: 100%;
   display: block;
 }
+
 .link {
   stroke-opacity: 0.5;
   stroke-width: 1.2;
   fill: none;
   pointer-events: none;
 }
+
 .link.IMPORTS {
   stroke: #64B5F6;
 }
+
 .link.CONTAINS {
   stroke: #607D8B;
   stroke-dasharray: 3, 3;
 }
+
 .link.CALLS {
   stroke: #FFD54F;
 }
+
 .link.INHERITS {
   stroke: #CE93D8;
   stroke-dasharray: 5, 2;
 }
+
 .link.highlighted {
   stroke-opacity: 0.9;
   stroke-width: 2.4;
 }
+
 .node circle {
   stroke: rgba(255, 255, 255, 0.15);
   stroke-width: 1;
   cursor: pointer;
   transition: stroke-width 0.1s;
 }
+
 .node circle:hover {
   stroke-width: 2.5;
   stroke: white;
 }
+
 .node.selected circle {
   stroke: white;
   stroke-width: 2.5;
 }
+
 .node.dimmed circle {
   opacity: 0.15;
 }
+
 .node.dimmed text {
   opacity: 0.15;
 }
+
 .node text {
   font-size: 10px;
   fill: var(--vscode-editor-foreground, #d4d4d4);
@@ -143,10 +191,12 @@ svg {
   text-anchor: middle;
   dominant-baseline: central;
 }
+
 .node .label-text {
   font-size: 9px;
   dy: 0;
 }
+
 #info-panel {
   width: 260px;
   min-width: 260px;
@@ -158,14 +208,17 @@ svg {
   flex-direction: column;
   gap: 10px;
 }
+
 #info-panel.visible {
   display: flex;
 }
+
 #info-panel h3 {
   font-size: 13px;
   font-weight: 600;
   word-break: break-all;
 }
+
 #info-panel .badge {
   display: inline-block;
   padding: 1px 7px;
@@ -174,6 +227,7 @@ svg {
   font-weight: 600;
   margin-bottom: 4px;
 }
+
 #info-panel .section-title {
   font-size: 11px;
   font-weight: 600;
@@ -182,6 +236,7 @@ svg {
   letter-spacing: 0.05em;
   margin-bottom: 4px;
 }
+
 #info-panel .func-item {
   padding: 3px 6px;
   border-radius: 3px;
@@ -194,9 +249,11 @@ svg {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 #info-panel .func-item:hover {
   background: var(--vscode-list-hoverBackground, #2a2d2e);
 }
+
 #info-panel .rel-item {
   font-size: 11px;
   padding: 2px 4px;
@@ -205,9 +262,11 @@ svg {
   color: var(--vscode-textLink-foreground, #6daeff);
   cursor: pointer;
 }
+
 #info-panel .rel-item:hover {
   text-decoration: underline;
 }
+
 #open-file-btn {
   padding: 5px 10px;
   background: var(--vscode-button-background, #0e639c);
@@ -218,9 +277,11 @@ svg {
   font-size: 12px;
   text-align: center;
 }
+
 #open-file-btn:hover {
   background: var(--vscode-button-hoverBackground, #1177bb);
 }
+
 #close-panel-btn {
   position: absolute;
   top: 8px;
@@ -233,6 +294,7 @@ svg {
   line-height: 1;
   padding: 2px 4px;
 }
+
 #tooltip {
   position: fixed;
   pointer-events: none;
@@ -246,9 +308,11 @@ svg {
   opacity: 0;
   transition: opacity 0.1s;
 }
+
 #tooltip.visible {
   opacity: 1;
 }
+
 #loading {
   position: absolute;
   inset: 0;
@@ -260,6 +324,7 @@ svg {
   background: var(--vscode-editor-background, #1e1e1e);
   z-index: 10;
 }
+
 #loading .spinner {
   width: 36px;
   height: 36px;
@@ -268,11 +333,13 @@ svg {
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
   }
 }
+
 #chat-btn {
   position: fixed;
   bottom: 20px;
@@ -292,10 +359,12 @@ svg {
   z-index: 2000;
   transition: background 0.15s, transform 0.15s;
 }
+
 #chat-btn:hover {
   background: var(--vscode-button-hoverBackground, #1177bb);
   transform: scale(1.08);
 }
+
 #chat-drawer {
   position: fixed;
   bottom: 72px;
@@ -314,9 +383,11 @@ svg {
   overflow: hidden;
   resize: both;
 }
+
 #chat-drawer.open {
   display: flex;
 }
+
 #chat-drawer-header {
   padding: 10px 14px;
   border-bottom: 1px solid var(--vscode-panel-border, #444);
@@ -327,6 +398,7 @@ svg {
   justify-content: space-between;
   flex-shrink: 0;
 }
+
 #close-chat-btn {
   background: none;
   border: none;
@@ -336,12 +408,14 @@ svg {
   line-height: 1;
   padding: 2px 4px;
 }
+
 #chat-body {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
+
 #chat-messages {
   flex: 1;
   overflow-y: auto;
@@ -350,6 +424,7 @@ svg {
   flex-direction: column;
   gap: 8px;
 }
+
 .chat-msg {
   max-width: 88%;
   padding: 7px 10px;
@@ -359,12 +434,14 @@ svg {
   word-break: break-word;
   white-space: pre-wrap;
 }
+
 .chat-msg.user {
   align-self: flex-end;
   background: var(--vscode-button-background, #0e639c);
   color: var(--vscode-button-foreground, #fff);
   border-bottom-right-radius: 2px;
 }
+
 .chat-msg.ai {
   align-self: flex-start;
   background: var(--vscode-editor-background, #1e1e1e);
@@ -372,21 +449,25 @@ svg {
   border: 1px solid var(--vscode-panel-border, #444);
   border-bottom-left-radius: 2px;
 }
+
 .chat-msg.ai.streaming::after {
   content: "x15ae";
   animation: blink 0.7s step-start infinite;
 }
+
 @keyframes blink {
   50% {
     opacity: 0;
   }
 }
+
 .chat-status {
   align-self: center;
   font-size: 11px;
   color: var(--vscode-descriptionForeground, #888);
   font-style: italic;
 }
+
 #chat-input-area {
   display: flex;
   gap: 6px;
@@ -395,6 +476,7 @@ svg {
   align-items: flex-end;
   flex-shrink: 0;
 }
+
 #chat-input {
   flex: 1;
   resize: none;
@@ -410,9 +492,11 @@ svg {
   max-height: 80px;
   overflow-y: auto;
 }
+
 #chat-input:focus {
   border-color: var(--vscode-focusBorder, #007acc);
 }
+
 #chat-send-btn {
   padding: 6px 12px;
   background: var(--vscode-button-background, #0e639c);
@@ -423,24 +507,29 @@ svg {
   font-size: 12px;
   flex-shrink: 0;
 }
+
 #chat-send-btn:hover {
   background: var(--vscode-button-hoverBackground, #1177bb);
 }
+
 #chat-send-btn:disabled {
   opacity: 0.45;
   cursor: default;
 }
+
 #api-key-section {
   border-bottom: 1px solid var(--vscode-panel-border, #444);
   padding: 8px 12px;
   flex-shrink: 0;
 }
+
 #api-key-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 4px;
 }
+
 #api-key-label {
   font-size: 10px;
   font-weight: 600;
@@ -448,6 +537,7 @@ svg {
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
+
 #api-key-toggle-btn {
   background: none;
   border: none;
@@ -457,12 +547,14 @@ svg {
   padding: 0 2px;
   line-height: 1;
 }
+
 #api-key-form-row {
   display: flex;
   gap: 6px;
   align-items: center;
   margin-bottom: 4px;
 }
+
 #api-key-input {
   flex: 1;
   padding: 5px 8px;
@@ -474,9 +566,11 @@ svg {
   font-family: var(--vscode-font-family, "Segoe UI", sans-serif);
   outline: none;
 }
+
 #api-key-input:focus {
   border-color: var(--vscode-focusBorder, #007acc);
 }
+
 #api-key-save-btn {
   padding: 4px 10px;
   background: var(--vscode-button-background, #0e639c);
@@ -487,16 +581,20 @@ svg {
   font-size: 11px;
   flex-shrink: 0;
 }
+
 #api-key-save-btn:hover {
   background: var(--vscode-button-hoverBackground, #1177bb);
 }
+
 #api-key-save-btn:disabled {
   opacity: 0.45;
   cursor: default;
 }
+
 #api-key-status {
   font-size: 10px;
   color: var(--vscode-descriptionForeground, #888);
   min-height: 13px;
 }
+
 /*# sourceMappingURL=graphApp.css.map */

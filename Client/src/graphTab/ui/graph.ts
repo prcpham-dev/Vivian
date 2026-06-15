@@ -3,37 +3,37 @@ import { vscode } from './api'
 
 // ── Constants ────────────────────────────────────────
 const NODE_COLORS: Record<string, string> = {
-  File:      '#4FC3F7',
-  Folder:    '#78909C',
-  Class:     '#FFB74D',
-  Function:  '#81C784',
+  File: '#4FC3F7',
+  Folder: '#78909C',
+  Class: '#FFB74D',
+  Function: '#81C784',
   Interface: '#CE93D8',
-  Struct:    '#F48FB1',
-  Enum:      '#80CBC4',
-  Record:    '#A5D6A7',
+  Struct: '#F48FB1',
+  Enum: '#80CBC4',
+  Record: '#A5D6A7',
 }
 
 const LINK_COLORS: Record<string, string> = {
-  IMPORTS:  '#64B5F6',
+  IMPORTS: '#64B5F6',
   CONTAINS: '#607D8B',
-  CALLS:    '#FFD54F',
+  CALLS: '#FFD54F',
   INHERITS: '#CE93D8',
 }
 
 const NODE_RADII: Record<string, number> = {
-  File:      9,
-  Folder:    11,
-  Class:     8,
-  Function:  6,
+  File: 9,
+  Folder: 11,
+  Class: 8,
+  Function: 6,
   Interface: 7,
-  Struct:    7,
-  Enum:      6,
-  Record:    6,
+  Struct: 7,
+  Enum: 6,
+  Record: 6,
 }
 
 // ── State ────────────────────────────────────────────
 let graphData: GraphData | null = null
-let activeRelTypes  = new Set(['IMPORTS', 'CALLS', 'INHERITS', 'CONTAINS'])
+let activeRelTypes = new Set(['IMPORTS', 'CALLS', 'INHERITS', 'CONTAINS'])
 let activeNodeTypes = new Set(['File', 'Folder', 'Class', 'Function', 'Interface', 'Struct', 'Enum', 'Record'])
 let selectedNode: D3Node | null = null
 let simulation: any = null
@@ -45,11 +45,11 @@ export function getSelectedNode() {
 let svg: any, rootG: any, linksG: any, nodesG: any, arrowG: any, zoom: any
 
 export function initGraph() {
-  svg     = d3.select('#svg')
-  rootG   = svg.append('g')
-  linksG  = rootG.append('g').attr('class', 'links-layer')
-  nodesG  = rootG.append('g').attr('class', 'nodes-layer')
-  arrowG  = svg.append('defs')
+  svg = d3.select('#svg')
+  rootG = svg.append('g')
+  linksG = rootG.append('g').attr('class', 'links-layer')
+  nodesG = rootG.append('g').attr('class', 'nodes-layer')
+  arrowG = svg.append('defs')
 
   // Arrow marker per relationship type
   Object.entries(LINK_COLORS).forEach(([type, color]) => {
@@ -62,9 +62,9 @@ export function initGraph() {
       .attr('markerHeight', 6)
       .attr('orient', 'auto')
       .append('path')
-        .attr('d', 'M0,-4L8,0L0,4')
-        .attr('fill', color as string)
-        .attr('opacity', 0.6)
+      .attr('d', 'M0,-4L8,0L0,4')
+      .attr('fill', color as string)
+      .attr('opacity', 0.6)
   })
 
   zoom = d3.zoom()
@@ -78,9 +78,26 @@ export function initGraph() {
   })
 
   // ── Search ───────────────────────────────────────────
-  document.getElementById('search')!.addEventListener('input', applyFilters)
-  document.getElementById('search')!.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') { (e.target as HTMLInputElement).value = ''; applyFilters() }
+  const searchInput = document.getElementById('search') as HTMLInputElement
+  const clearSearchBtn = document.getElementById('clear-search-btn') as HTMLButtonElement
+
+  searchInput.addEventListener('input', () => {
+    clearSearchBtn.style.display = searchInput.value ? 'block' : 'none'
+    applyFilters()
+  })
+
+  clearSearchBtn.addEventListener('click', () => {
+    searchInput.value = ''
+    clearSearchBtn.style.display = 'none'
+    applyFilters()
+  })
+
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      (e.target as HTMLInputElement).value = ''
+      clearSearchBtn.style.display = 'none'
+      applyFilters()
+    }
   })
 
   // ── Keyboard shortcuts ────────────────────────────────
@@ -120,46 +137,46 @@ export function renderGraph(data: GraphData) {
     .map(r => ({
       source: r.sourceId,
       target: r.targetId,
-      type:   r.type,
-      id:     r.id,
+      type: r.type,
+      id: r.id,
     }))
 
   // Destroy old simulation
   if (simulation) simulation.stop()
 
   const { width, height } = document.getElementById('svg')!.getBoundingClientRect()
-  const cx = width  / 2 || 600
+  const cx = width / 2 || 600
   const cy = height / 2 || 400
 
   simulation = d3.forceSimulation(nodes)
-    .force('link',      d3.forceLink(links).id((d: any) => d.id).distance((d: any) => d.type === 'CONTAINS' ? 60 : 120))
-    .force('charge',    d3.forceManyBody().strength((d: any) => d.label === 'File' ? -350 : -150))
-    .force('center',    d3.forceCenter(cx, cy))
+    .force('link', d3.forceLink(links).id((d: any) => d.id).distance((d: any) => d.type === 'CONTAINS' ? 60 : 120))
+    .force('charge', d3.forceManyBody().strength((d: any) => d.label === 'File' ? -350 : -150))
+    .force('center', d3.forceCenter(cx, cy))
     .force('collision', d3.forceCollide((d: any) => d.r + 4))
-    .force('x',         d3.forceX(cx).strength(0.04))
-    .force('y',         d3.forceY(cy).strength(0.04))
+    .force('x', d3.forceX(cx).strength(0.04))
+    .force('y', d3.forceY(cy).strength(0.04))
     .alphaDecay(0.03)
 
   // ── Links ────────────────────────────
   const link = linksG.selectAll('.link')
     .data(links, (d: any) => d.id)
     .join('line')
-      .attr('class', (d: any) => 'link ' + d.type)
-      .attr('marker-end', (d: any) => `url(#arrow-${d.type})`)
+    .attr('class', (d: any) => 'link ' + d.type)
+    .attr('marker-end', (d: any) => `url(#arrow-${d.type})`)
 
   // ── Nodes ────────────────────────────
   const node = nodesG.selectAll('.node')
     .data(nodes, (d: any) => d.id)
     .join('g')
-      .attr('class', 'node')
-      .call(d3.drag()
-        .on('start', dragStart)
-        .on('drag',  dragged)
-        .on('end',   dragEnd))
-      .on('click', (event: any, d: any) => { event.stopPropagation(); selectNode(d, node, link) })
-      .on('mouseover', showTooltip)
-      .on('mousemove', moveTooltip)
-      .on('mouseout',  hideTooltip)
+    .attr('class', 'node')
+    .call(d3.drag()
+      .on('start', dragStart)
+      .on('drag', dragged)
+      .on('end', dragEnd))
+    .on('click', (event: any, d: any) => { event.stopPropagation(); selectNode(d, node, link) })
+    .on('mouseover', showTooltip)
+    .on('mousemove', moveTooltip)
+    .on('mouseout', hideTooltip)
 
   node.append('circle').attr('r', (d: any) => d.r).attr('fill', (d: any) => NODE_COLORS[d.label] || '#aaa')
   node.append('text').attr('dy', (d: any) => d.r + 10).attr('class', 'label-text').text((d: any) => truncate(d.name, 18))
@@ -180,14 +197,14 @@ export function renderGraph(data: GraphData) {
 
 // ── Build filter chips ────────────────────────────────
 function buildFilterChips() {
-  const relContainer  = document.getElementById('rel-filters')!
+  const relContainer = document.getElementById('rel-filters')!
   const nodeContainer = document.getElementById('node-filters')!
 
   // Clear old chips (keep the label spans)
   Array.from(relContainer.querySelectorAll('.chip')).forEach(e => e.remove())
   Array.from(nodeContainer.querySelectorAll('.chip')).forEach(e => e.remove())
 
-  if(!graphData) return;
+  if (!graphData) return;
 
   // Relationship chips
   const relTypes = [...new Set(graphData.relationships.map(r => r.type))] as string[]
@@ -244,8 +261,8 @@ function applyFilters() {
 
   linksG.selectAll('.link').style('display', (d: any) =>
     activeRelTypes.has(d.type) &&
-    visibleNodeIds.has(typeof d.source === 'object' ? d.source.id : d.source) &&
-    visibleNodeIds.has(typeof d.target === 'object' ? d.target.id : d.target)
+      visibleNodeIds.has(typeof d.source === 'object' ? d.source.id : d.source) &&
+      visibleNodeIds.has(typeof d.target === 'object' ? d.target.id : d.target)
       ? null
       : 'none'
   )
@@ -414,7 +431,7 @@ function dragEnd(event: any, d: any) {
 function showTooltip(event: any, d: any) {
   const tooltip = document.getElementById('tooltip')!
   const fCount = (d.functions || []).length
-  const cCount = (d.classes   || []).length
+  const cCount = (d.classes || []).length
   tooltip.innerHTML = `<strong>${d.name}</strong><br><span style="color:#888">${d.label}</span>` +
     (fCount ? `<br>${fCount} function${fCount === 1 ? '' : 's'}` : '') +
     (cCount ? `<br>${cCount} class${cCount === 1 ? '' : 'es'}` : '') +
@@ -425,7 +442,7 @@ function showTooltip(event: any, d: any) {
 function moveTooltip(event: any) {
   const tooltip = document.getElementById('tooltip')!
   tooltip.style.left = (event.clientX + 14) + 'px'
-  tooltip.style.top  = (event.clientY - 10) + 'px'
+  tooltip.style.top = (event.clientY - 10) + 'px'
 }
 function hideTooltip() {
   const tooltip = document.getElementById('tooltip')!
