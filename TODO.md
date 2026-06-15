@@ -1,2 +1,0 @@
-- Cleaning the history and session json file.
-- Deploy to a ready use vscodde extension rather than f5
