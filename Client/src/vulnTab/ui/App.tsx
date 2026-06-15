@@ -131,10 +131,12 @@ export default function App() {
   const [fileContent, setFileContent] = useState<string | null>(null);
   const [findings, setFindings] = useState<any[]>([]);
   const [scanning, setScanning] = useState(false);
+  const [scanError, setScanError] = useState<string | null>(null);
 
   const [gitFindings, setGitFindings] = useState<any[]>([]);
   const [scanningGit, setScanningGit] = useState(false);
   const [gitScanCompleted, setGitScanCompleted] = useState(false);
+  const [gitScanError, setGitScanError] = useState<string | null>(null);
 
   useEffect(() => {
     const handleMessage = (event: any) => {
@@ -196,6 +198,7 @@ export default function App() {
     if (checkedFiles.size === 0) return;
     setScanning(true);
     setFindings([]);
+    setScanError(null);
     try {
       const res = await fetch(`http://localhost:${DEFAULT_PORT}/scan/directory`, {
         method: 'POST',
@@ -203,10 +206,17 @@ export default function App() {
         body: JSON.stringify({ workspace_root: workspaceRoot, nodes: Array.from(checkedFiles) })
       });
       const data = await res.json();
-      if (data.findings) setFindings(data.findings);
-      setScannedFiles(new Set(checkedFiles));
-    } catch (e) {
+      if (!res.ok) {
+        setScanError(data.error || data.detail || 'Server error occurred');
+      } else if (data.error) {
+        setScanError(data.error);
+      } else {
+        if (data.findings) setFindings(data.findings);
+        setScannedFiles(new Set(checkedFiles));
+      }
+    } catch (e: any) {
       console.error(e);
+      setScanError(e.message || String(e));
     } finally {
       setScanning(false);
     }
@@ -216,6 +226,8 @@ export default function App() {
     if (gitChanges.length === 0) return;
     setScanningGit(true);
     setGitFindings([]);
+    setGitScanError(null);
+    setGitScanCompleted(false);
     try {
       const res = await fetch(`http://localhost:${DEFAULT_PORT}/scan/directory`, {
         method: 'POST',
@@ -223,13 +235,20 @@ export default function App() {
         body: JSON.stringify({ workspace_root: workspaceRoot, nodes: gitChanges })
       });
       const data = await res.json();
-      if (data.findings) {
-        setGitFindings(data.findings);
+      if (!res.ok) {
+        setGitScanError(data.error || data.detail || 'Server error occurred');
+      } else if (data.error) {
+        setGitScanError(data.error);
+      } else {
+        if (data.findings) {
+          setGitFindings(data.findings);
+        }
+        setGitScanCompleted(true);
       }
-      setGitScanCompleted(true);
       setActiveFile(null);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      setGitScanError(e.message || String(e));
     } finally {
       setScanningGit(false);
     }
@@ -253,6 +272,7 @@ export default function App() {
                  )}
                </div>
                <div style={{ padding: '8px', borderTop: '1px solid var(--vscode-panel-border)' }}>
+                 {scanError && <div style={{ color: '#f14c4c', fontSize: '11px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={12} /> {scanError}</div>}
                  <button className="git-button" style={{ width: '100%', justifyContent: 'center' }} onClick={handleScan} disabled={scanning || checkedFiles.size === 0}>
                    {scanning ? <><Loader2 size={14} className="spin" /> Scanning...</> : 'Scan Selected'}
                  </button>
@@ -271,6 +291,7 @@ export default function App() {
                  ))}
                </div>
                <div style={{ padding: '8px', borderTop: '1px solid var(--vscode-panel-border)' }}>
+                 {gitScanError && <div style={{ color: '#f14c4c', fontSize: '11px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={12} /> {gitScanError}</div>}
                  <button className="git-button" style={{ width: '100%', justifyContent: 'center' }} onClick={handleGitScan} disabled={scanningGit || gitChanges.length === 0}>
                    {scanningGit ? <><Loader2 size={14} className="spin" /> Scanning Changes...</> : 'Scan Vulnerabilities'}
                  </button>
