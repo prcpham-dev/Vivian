@@ -5,10 +5,9 @@ echo "==========================================="
 
 echo ""
 echo "[1/2] Setting up Client (VS Code Extension)"
-cd "$(dirname "$0")/Client" || exit
+cd "$(dirname "$0")" || exit
 npm install
 npm run package
-cd ..
 
 echo ""
 echo "[2/2] Setting up Server (Python Backend)"
@@ -17,7 +16,7 @@ echo "Creating Python virtual environment..."
 python3 -m venv venv
 source venv/bin/activate
 echo "Installing requirements..."
-pip install -r requirements.txt
+pip install -r ../requirements.txt
 cd ..
 
 echo ""

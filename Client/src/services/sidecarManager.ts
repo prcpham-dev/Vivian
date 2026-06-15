@@ -81,7 +81,7 @@ export async function startSidecar(extensionPath: string): Promise<void> {
 
   const config = vscode.workspace.getConfiguration('vivian')
   const port: number = config.get('sidecarPort') ?? 8765
-  const serverPath = path.resolve(extensionPath, '..', 'Server')
+  const serverPath = path.join(extensionPath, 'Server')
   const healthUrl = `http://127.0.0.1:${port}/health`
 
   log(`Starting sidecar on port ${port} from ${serverPath}`)

@@ -5,10 +5,8 @@ echo ===========================================
 
 echo.
 echo [1/2] Setting up Client (VS Code Extension)
-cd Client
 call npm install
 call npm run package
-cd ..
 
 echo.
 echo [2/2] Setting up Server (Python Backend)
@@ -17,7 +15,7 @@ echo Creating Python virtual environment...
 python -m venv venv
 call venv\Scripts\activate.bat
 echo Installing requirements...
-pip install -r requirements.txt
+pip install -r ..\requirements.txt
 cd ..
 
 echo.

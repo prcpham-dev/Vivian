@@ -56,7 +56,7 @@ Once the script finishes:
 1. Open the Extensions view in VS Code (`Cmd+Shift+X` or `Ctrl+Shift+X`).
 2. Click the `...` (Views and More Actions) button at the top right of the Extensions panel.
 3. Select **Install from VSIX...**
-4. Choose the newly generated `vivian-1.0.0.vsix` file located in the `Client` directory.
+4. Choose the newly generated `vivian-1.0.0.vsix` file located in your project root directory.
 
 ## Project Structure
 ```text
