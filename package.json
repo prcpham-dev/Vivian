@@ -9,7 +9,7 @@
     "url": "https://github.com/prcpham-dev/Vivian.git"
   },
   "license": "MIT",
-  "icon": "Client/icon.png",
+  "icon": "assets/icon.png",
   "engines": {
     "vscode": "^1.85.0"
   },

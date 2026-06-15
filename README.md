@@ -1,4 +1,4 @@
-# Vivian <img src="Client/icon.png" width="30" style="vertical-align:middle; margin-bottom:5px;" alt="">
+# Vivian <img src="assets/icon.png" width="30" style="vertical-align:middle; margin-bottom:5px;" alt="">
 
 Vivian is an intelligent code analysis tool designed to visualize the codebase as an interactive graph, making it easier for both developers and AI agents to read, follow, and understand code structure. While it includes vulnerability management capabilities, its primary focus is on structural visualization and agentic interaction. It consists of a VS Code extension (Client) and a Python backend service (Server).
 
@@ -57,6 +57,15 @@ Once the script finishes:
 2. Click the `...` (Views and More Actions) button at the top right of the Extensions panel.
 3. Select **Install from VSIX...**
 4. Choose the newly generated `vivian-1.0.0.vsix` file located in your project root directory.
+
+## How to Use
+Once the extension is installed, you can launch the Vivian interactive graph in two ways:
+
+1. **Status Bar Button:** Click the **Vivian** button located in the bottom-left status bar of your VS Code window.
+   ![Vivian Status Bar Button](assets/button.png)
+
+2. **Command Palette:** If you don't see the button, open the Command Palette (`Cmd+Shift+P` on Mac or `Ctrl+Shift+P` on Windows), type **Vivian**, and select **Vivian: Open Graph**.
+   ![Vivian Command Palette](assets/command_pallet.png)
 
 ## Project Structure
 ```text
