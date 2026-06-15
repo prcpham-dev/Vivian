@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
-import { KnowledgeGraph } from './types'
-import { log } from './utils/logger'
+import { KnowledgeGraph } from '../types'
+import { log } from '../utils/logger'
 
 function getNonce(): string {
   let text = ''
@@ -66,6 +66,10 @@ export class GraphPanel {
       log(`[WebView] ${msg.text}`)
     } else if (msg.command === 'openVulnManager') {
       vscode.commands.executeCommand('vivian.openVulnManager')
+    } else if (msg.command === 'openProjectsFolder') {
+      const os = require('os')
+      const p = vscode.Uri.file(os.homedir() + '/.vivian/projects')
+      vscode.env.openExternal(p)
     }
   }
 
@@ -358,8 +362,12 @@ export class GraphPanel {
     position: fixed;
     bottom: 72px;
     right: 20px;
-    width: 320px;
-    height: 460px;
+    width: 400px;
+    height: 560px;
+    min-width: 300px;
+    min-height: 350px;
+    max-width: 90vw;
+    max-height: 90vh;
     background: var(--vscode-sideBar-background, #252526);
     border: 1px solid var(--vscode-panel-border, #444);
     border-radius: 8px;
@@ -368,6 +376,7 @@ export class GraphPanel {
     display: none;
     flex-direction: column;
     overflow: hidden;
+    resize: both;
   }
   #chat-drawer.open { display: flex; }
 
@@ -584,19 +593,38 @@ export class GraphPanel {
 <div id="chat-drawer">
   <div id="chat-drawer-header">
     <span>Vivian Chat</span>
-    <button id="close-chat-btn" title="Close">&#xD7;</button>
+    <div style="display: flex; align-items: center;">
+      <button id="chat-settings-btn" title="Settings" style="background: none; border: none; color: var(--vscode-icon-foreground, #c5c5c5); cursor: pointer; font-size: 16px; margin-right: 8px;">&#x2699;</button>
+      <button id="close-chat-btn" title="Close">&#xD7;</button>
+    </div>
   </div>
   <div id="chat-body">
-    <div id="api-key-section">
-      <div id="api-key-header">
-        <span id="api-key-label">Gemini API Key</span>
-        <button id="api-key-toggle-btn" title="Toggle">&#x25BC;</button>
+    <div id="settings-section" style="display: none; border-bottom: 1px solid var(--vscode-panel-border, #444); padding: 8px 12px; flex-shrink: 0; flex-direction: column; gap: 8px;">
+      <div style="font-size: 10px; font-weight: 600; color: var(--vscode-descriptionForeground, #888); text-transform: uppercase; letter-spacing: 0.05em;">API Key</div>
+      <div style="display: flex; gap: 6px; align-items: center;">
+        <input type="password" id="api-key-input" placeholder="Paste API key&#x2026;" autocomplete="off" style="flex:1; padding: 5px 8px; border-radius: 4px; border: 1px solid var(--vscode-input-border, #555); background: var(--vscode-input-background, #3c3c3c); color: var(--vscode-input-foreground, #d4d4d4); font-size: 11px;">
+        <button id="api-key-save-btn" style="padding: 4px 10px; background: var(--vscode-button-background, #0e639c); color: var(--vscode-button-foreground, #fff); border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Save</button>
       </div>
-      <div id="api-key-form-row">
-        <input type="password" id="api-key-input" placeholder="Paste API key&#x2026;" autocomplete="off">
-        <button id="api-key-save-btn">Save</button>
+      <div id="api-key-status" style="font-size: 10px; color: var(--vscode-descriptionForeground, #888); min-height: 13px;"></div>
+      
+      <div style="font-size: 10px; font-weight: 600; color: var(--vscode-descriptionForeground, #888); text-transform: uppercase; letter-spacing: 0.05em;">Model Selection</div>
+      <div style="display: flex; gap: 6px; align-items: center;">
+        <select id="model-select" style="flex: 1; padding: 4px; border-radius: 4px; border: 1px solid var(--vscode-input-border, #555); background: var(--vscode-input-background, #3c3c3c); color: var(--vscode-input-foreground, #d4d4d4); font-size: 11px;">
+          <option value="gemini-3.5-flash">gemini-3.5-flash</option>
+          <option value="gemini-3.5-pro">gemini-3.5-pro</option>
+          <option value="gemini-3.1-pro">gemini-3.1-pro</option>
+          <option value="gemini-3.1-flash-lite">gemini-3.1-flash-lite</option>
+          <option value="gemini-3.1-flash-live">gemini-3.1-flash-live</option>
+          <option value="gemini-3-pro-deep-think">gemini-3-pro-deep-think</option>
+          <option value="gemini-2.5-flash">gemini-2.5-flash</option>
+          <option value="gemini-2.5-pro">gemini-2.5-pro</option>
+          <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite</option>
+        </select>
       </div>
-      <div id="api-key-status"></div>
+      
+      <div style="margin-top: 4px;">
+        <button id="open-projects-btn" style="width: 100%; padding: 6px; background: transparent; color: var(--vscode-button-background, #0e639c); border: 1px solid var(--vscode-button-background, #0e639c); border-radius: 4px; cursor: pointer; font-size: 11px;">Open Projects Folder</button>
+      </div>
     </div>
     <div id="chat-messages"></div>
     <div id="chat-input-area">
@@ -1172,39 +1200,44 @@ export class GraphPanel {
     }
   })
 
-  // ── API Key section ───────────────────────────────────
-  const API_BASE       = 'http://localhost:8765'
-  const apiKeySection  = document.getElementById('api-key-section')
-  const apiKeyFormRow  = document.getElementById('api-key-form-row')
-  const apiKeyInput    = document.getElementById('api-key-input')
-  const apiKeySaveBtn  = document.getElementById('api-key-save-btn')
-  const apiKeyStatus   = document.getElementById('api-key-status')
-  const apiKeyToggleBtn = document.getElementById('api-key-toggle-btn')
+  // ── Settings section ───────────────────────────────────
+  const API_BASE          = 'http://localhost:8765'
+  const settingsSection   = document.getElementById('settings-section')
+  const chatSettingsBtn   = document.getElementById('chat-settings-btn')
+  const apiKeyInput       = document.getElementById('api-key-input')
+  const apiKeySaveBtn     = document.getElementById('api-key-save-btn')
+  const apiKeyStatus      = document.getElementById('api-key-status')
+  const modelSelect       = document.getElementById('model-select')
+  const openProjectsBtn   = document.getElementById('open-projects-btn')
 
-  function setKeyFormVisible(visible) {
-    apiKeyFormRow.style.display = visible ? 'flex' : 'none'
-    apiKeyToggleBtn.textContent = visible ? '▲' : '▼'
-  }
+  chatSettingsBtn.addEventListener('click', () => {
+    settingsSection.style.display = settingsSection.style.display === 'none' ? 'flex' : 'none'
+  })
+  
+  openProjectsBtn.addEventListener('click', () => {
+    vscode.postMessage({ command: 'openProjectsFolder' })
+  })
 
-  async function loadApiKeyStatus() {
+  async function loadSettings() {
     try {
-      const res = await fetch(API_BASE + '/settings/api-key')
-      const data = await res.json()
-      if (data.api_key_set) {
+      const resKey = await fetch(API_BASE + '/settings/api-key')
+      const dataKey = await resKey.json()
+      if (dataKey.api_key_set) {
         apiKeyStatus.textContent = 'API key is set'
-        setKeyFormVisible(false)
       } else {
         apiKeyStatus.textContent = 'No API key! Enter one to enable chat'
-        setKeyFormVisible(true)
+        settingsSection.style.display = 'flex'
+      }
+
+      const resModel = await fetch(API_BASE + '/settings/model')
+      const dataModel = await resModel.json()
+      if (dataModel.model) {
+        modelSelect.value = dataModel.model
       }
     } catch {
       apiKeyStatus.textContent = ''
     }
   }
-
-  apiKeyToggleBtn.addEventListener('click', () => {
-    setKeyFormVisible(apiKeyFormRow.style.display === 'none')
-  })
 
   apiKeySaveBtn.addEventListener('click', async () => {
     const key = apiKeyInput.value.trim()
@@ -1220,7 +1253,6 @@ export class GraphPanel {
       if (res.ok) {
         apiKeyInput.value = ''
         apiKeyStatus.textContent = 'API key saved'
-        setKeyFormVisible(false)
       } else {
         apiKeyStatus.textContent = 'Failed to save key'
       }
@@ -1235,7 +1267,20 @@ export class GraphPanel {
     if (e.key === 'Enter') apiKeySaveBtn.click()
   })
 
-  loadApiKeyStatus()
+  modelSelect.addEventListener('change', async () => {
+    const model = modelSelect.value
+    try {
+      await fetch(API_BASE + '/settings/model', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: model }),
+      })
+    } catch (err) {
+      console.error('Failed to save model', err)
+    }
+  })
+
+  loadSettings()
 
   setSendEnabled(false)
   connectWs()

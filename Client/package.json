@@ -1,43 +1,49 @@
 {
   "name": "vivian",
-  "displayName": "Vivian — Code Graph",
-  "description": "Interactive D3 force-directed code relationship graph with AI analysis",
-  "version": "0.1.0",
-  "engines": { "vscode": "^1.85.0" },
-  "categories": ["Visualization", "Other"],
-  "activationEvents": ["onCommand:vivian.openGraph"],
+  "displayName": "Vivian",
+  "description": "Code analysis tool designed to visualize the codebase as an interactive graph.",
+  "version": "1.0.0",
+  "publisher": "prcpham",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prcpham-dev/Vivian.git"
+  },
+  "icon": "icon.png",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "vivian.openGraph",
-        "title": "Vivian: Open Code Graph"
+        "title": "Vivian: Open Code Graph",
+        "icon": "$(telescope)"
       },
       {
         "command": "vivian.openVulnManager",
         "title": "Vivian: Open Vulnerability Manager"
       }
     ],
-    "configuration": {
-      "title": "Vivian",
-      "properties": {
-        "vivian.sidecarPort": {
-          "type": "number",
-          "default": 8765,
-          "description": "Port for the Vivian Python sidecar server"
-        },
-        "vivian.autoStartSidecar": {
-          "type": "boolean",
-          "default": true,
-          "description": "Automatically start the Python sidecar when opening the graph"
+    "menus": {
+      "editor/title": [
+        {
+          "command": "vivian.openGraph",
+          "group": "navigation"
         }
-      }
+      ]
     }
   },
   "scripts": {
     "build": "node esbuild.js",
     "watch": "node esbuild.js --watch",
-    "vscode:prepublish": "node esbuild.js --production"
+    "vscode:prepublish": "node esbuild.js --production",
+    "package": "sed 's/Client\\/icon.png/icon.png/g' ../README.md > ./README.md && npx @vscode/vsce package && rm ./README.md"
   },
   "dependencies": {
     "lucide-react": "^0.300.0",
