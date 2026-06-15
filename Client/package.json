@@ -8,6 +8,7 @@
     "type": "git",
     "url": "https://github.com/prcpham-dev/Vivian.git"
   },
+  "license": "MIT",
   "icon": "icon.png",
   "engines": {
     "vscode": "^1.85.0"
@@ -43,7 +44,7 @@
     "build": "node esbuild.js",
     "watch": "node esbuild.js --watch",
     "vscode:prepublish": "node esbuild.js --production",
-    "package": "sed 's/Client\\/icon.png/icon.png/g' ../README.md > ./README.md && npx @vscode/vsce package && rm ./README.md"
+    "package": "sed 's/Client\\/icon.png/icon.png/g' ../README.md > ./README.md && cp ../LICENSE ./LICENSE && npx @vscode/vsce package && rm ./README.md ./LICENSE"
   },
   "dependencies": {
     "lucide-react": "^0.300.0",
