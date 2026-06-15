@@ -1,11 +1,20 @@
 {
   "name": "vivian",
-  "displayName": "Vivian — Code Graph",
-  "description": "Interactive D3 force-directed code relationship graph with AI analysis",
-  "version": "0.1.0",
-  "engines": { "vscode": "^1.85.0" },
-  "categories": ["Visualization", "Other"],
-  "activationEvents": ["*"],
+  "displayName": "Vivian",
+  "description": "Code analysis tool designed to visualize the codebase as an interactive graph.",
+  "version": "1.0",
+  "publisher": "prcpham",
+  "icon": "icon.png",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "activationEvents": [
+    "*"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [

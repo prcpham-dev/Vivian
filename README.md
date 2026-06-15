@@ -1,4 +1,4 @@
-# Vivian
+# Vivian <img src="Client/icon.png" width="30" style="vertical-align:middle; margin-bottom:5px;" alt="Vivian">
 
 Vivian is an intelligent code analysis tool designed to visualize the codebase as an interactive graph, making it easier for both developers and AI agents to read, follow, and understand code structure. While it includes vulnerability management capabilities, its primary focus is on structural visualization and agentic interaction. It consists of a VS Code extension (Client) and a Python backend service (Server).
 
@@ -45,8 +45,14 @@ We learned a massive amount about agentic AI architectures and how to effectivel
 *   **Simplified Prompting:** Right now, users sometimes have to provide a lot of manual context in their prompts. We want to automate context-gathering so the prompting experience is frictionless.
 *   **UI/UX Polish:** We will continue to refine and simplify the user interface to make the graph navigation and chat experience as intuitive as possible.
 
-## Project Structure
+## Installation
 
+1. Open the Extensions view (`Cmd+Shift+X` on Mac).
+2. Click the `...` (Views and More Actions) button at the top right of the Extensions panel.
+3. Select **Install from VSIX...**
+4. Choose the `vivian-1.0.0.vsix` file from your `Client` directory.
+
+## Project Structure
 ```text
 Vivian/
 ├── Client/                 # VS Code Extension (TypeScript)
