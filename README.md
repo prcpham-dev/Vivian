@@ -38,27 +38,19 @@ We built Vivian using a modern, multi-layered tech stack:
 
 ## Installation and Setup
 
-### 1. Build the VS Code Extension (Client)
-To generate the extension file (`.vsix`), you'll need Node.js installed.
-```bash
-cd Client
-npm install
-npm run package
-```
-This will create a `vivian-1.0.0.vsix` file in the `Client` directory.
+The easiest way to build the extension and install the required Python dependencies is to use the provided setup scripts. These scripts will automatically install the Node dependencies, package the VS Code extension, and create the Python virtual environment for the backend server.
 
-### 2. Install the Extension in VS Code
-1. Open the Extensions view (`Cmd+Shift+X` on Mac).
+**For Mac/Linux:**
+Double-click the `setup.command` file in Finder, or run `./setup.command` from your terminal.
+
+**For Windows:**
+Double-click the `setup.bat` file in Explorer.
+
+Once the script finishes:
+1. Open the Extensions view in VS Code (`Cmd+Shift+X` or `Ctrl+Shift+X`).
 2. Click the `...` (Views and More Actions) button at the top right of the Extensions panel.
 3. Select **Install from VSIX...**
-4. Choose the generated `vivian-1.0.0.vsix` file.
-
-### 3. Setup the Python Backend (Server)
-You need Python 3 installed. Navigate to the `Server` directory and install the dependencies:
-```bash
-cd Server
-pip install -r requirements.txt
-```
+4. Choose the newly generated `vivian-1.0.0.vsix` file located in the `Client` directory.
 
 ## Project Structure
 ```text
