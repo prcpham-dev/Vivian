@@ -2,8 +2,12 @@
   "name": "vivian",
   "displayName": "Vivian",
   "description": "Code analysis tool designed to visualize the codebase as an interactive graph.",
-  "version": "1.0",
+  "version": "1.0.0",
   "publisher": "prcpham",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prcpham-dev/Vivian.git"
+  },
   "icon": "icon.png",
   "engines": {
     "vscode": "^1.85.0"
@@ -12,9 +16,7 @@
     "Visualization",
     "Other"
   ],
-  "activationEvents": [
-    "*"
-  ],
+  "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -35,27 +37,13 @@
           "group": "navigation"
         }
       ]
-    },
-    "configuration": {
-      "title": "Vivian",
-      "properties": {
-        "vivian.sidecarPort": {
-          "type": "number",
-          "default": 8765,
-          "description": "Port for the Vivian Python sidecar server"
-        },
-        "vivian.autoStartSidecar": {
-          "type": "boolean",
-          "default": true,
-          "description": "Automatically start the Python sidecar when opening the graph"
-        }
-      }
     }
   },
   "scripts": {
     "build": "node esbuild.js",
     "watch": "node esbuild.js --watch",
-    "vscode:prepublish": "node esbuild.js --production"
+    "vscode:prepublish": "node esbuild.js --production",
+    "package": "sed 's/Client\\/icon.png/icon.png/g' ../README.md > ./README.md && npx @vscode/vsce package && rm ./README.md"
   },
   "dependencies": {
     "lucide-react": "^0.300.0",
