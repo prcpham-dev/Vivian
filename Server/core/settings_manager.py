@@ -11,9 +11,13 @@ load_dotenv(dotenv_path=_ENV_PATH)
 def get_project_dir(workspace_root: str) -> Path:
     """Returns a global storage directory for a specific workspace: ~/.vivian/projects/<safe_name>"""
     home = Path.home()
-    safe_name = workspace_root.replace("/", "_").replace("\\", "_").strip("_")
-    if not safe_name:
-        safe_name = "default_project"
+    
+    project_name = Path(workspace_root).name
+    if not project_name:
+        project_name = "default_project"
+        
+    safe_path = workspace_root.replace("/", "_").replace("\\", "_").strip("_")
+    safe_name = f"{project_name}--{safe_path}"
     
     project_dir = home / ".vivian" / "projects" / safe_name
     project_dir.mkdir(parents=True, exist_ok=True)

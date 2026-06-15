@@ -14,6 +14,7 @@ SUPPORTED_EXTENSIONS: set[str] = {
     ".py", ".go",
     ".rs", ".java",
     ".c", ".cpp", ".h", ".hpp",
+    ".cs",
 }
 
 DEFAULT_MAX_DEPTH: int = 15
