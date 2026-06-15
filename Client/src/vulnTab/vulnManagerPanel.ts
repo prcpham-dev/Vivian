@@ -48,7 +48,7 @@ export class VulnManagerPanel {
         return
       }
 
-      const { loadCacheFromServer } = require('./services/sidecarClient')
+      const { loadCacheFromServer } = require('../services/sidecarClient')
       loadCacheFromServer(workspaceRoot).then((graph: any) => {
         let files: string[] = []
         if (graph && graph.nodes) {

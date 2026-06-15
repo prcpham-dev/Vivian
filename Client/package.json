@@ -5,19 +5,28 @@
   "version": "0.1.0",
   "engines": { "vscode": "^1.85.0" },
   "categories": ["Visualization", "Other"],
-  "activationEvents": ["onCommand:vivian.openGraph"],
+  "activationEvents": ["*"],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "vivian.openGraph",
-        "title": "Vivian: Open Code Graph"
+        "title": "Vivian: Open Code Graph",
+        "icon": "$(telescope)"
       },
       {
         "command": "vivian.openVulnManager",
         "title": "Vivian: Open Vulnerability Manager"
       }
     ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "vivian.openGraph",
+          "group": "navigation"
+        }
+      ]
+    },
     "configuration": {
       "title": "Vivian",
       "properties": {

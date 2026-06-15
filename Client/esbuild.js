@@ -20,8 +20,16 @@ async function build() {
 
   const webviewCtx = await esbuild.context({
     ...baseOpts,
-    entryPoints: ['src/vulnManager/index.tsx'],
+    entryPoints: ['src/vulnTab/ui/index.tsx'],
     outfile: 'out/vulnManager.js',
+    platform: 'browser',
+    format: 'iife',
+  })
+
+  const graphAppCtx = await esbuild.context({
+    ...baseOpts,
+    entryPoints: ['src/graphTab/ui/index.ts'],
+    outfile: 'out/graphApp.js',
     platform: 'browser',
     format: 'iife',
   })
@@ -29,12 +37,15 @@ async function build() {
   if (isWatch) {
     await ctx.watch()
     await webviewCtx.watch()
+    await graphAppCtx.watch()
     console.log('Watching...')
   } else {
     await ctx.rebuild()
     await webviewCtx.rebuild()
+    await graphAppCtx.rebuild()
     await ctx.dispose()
     await webviewCtx.dispose()
+    await graphAppCtx.dispose()
     console.log('Build complete.')
   }
 }

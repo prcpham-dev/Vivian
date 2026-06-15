@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { AlertTriangle, FileText, CheckCircle, Folder, ChevronRight, ChevronDown, Loader2 } from 'lucide-react';
-import { DEFAULT_PORT } from '../utils/constants';
+import { DEFAULT_PORT } from '../../utils/constants';
 
 const getVscode = () => (window as any).vscode;
 

@@ -1,15 +1,22 @@
 import * as vscode from 'vscode'
 import * as path from 'path'
-import { GraphPanel } from './graphPanel'
-import { VulnManagerPanel } from './vulnManagerPanel'
-import { getOrBuildGraph } from './graphGenerator'
+import { GraphPanel } from './graphTab/graphPanel'
+import { VulnManagerPanel } from './vulnTab/vulnManagerPanel'
+import { getOrBuildGraph } from './graphTab/graphGenerator'
 import { startSidecar, stopSidecar } from './services/sidecarManager'
 import { log, disposeLogger } from './utils/logger'
 
 export function activate(context: vscode.ExtensionContext): void {
   log('Vivian activated')
 
+  const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100)
+  statusBarItem.command = 'vivian.openGraph'
+  statusBarItem.text = '$(telescope) Vivian'
+  statusBarItem.tooltip = 'Open Vivian Code Graph'
+  statusBarItem.show()
+
   context.subscriptions.push(
+    statusBarItem,
     vscode.commands.registerCommand('vivian.openGraph', () => openGraph(context, false)),
     vscode.commands.registerCommand('vivian.openVulnManager', () => {
       VulnManagerPanel.create(context)
