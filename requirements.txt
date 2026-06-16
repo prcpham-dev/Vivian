@@ -5,7 +5,3 @@ langgraph
 langchain-core
 langchain-openai
 langchain-google-genai
-
-
-networkx
-matplotlib
