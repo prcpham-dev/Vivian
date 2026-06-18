@@ -12,7 +12,7 @@ We wanted to solve the problem of navigating and understanding complex, large-sc
 - **The Vivian Approach (Graph Architecture):** We realized that code is inherently relational, not just a collection of text documents. Vivian solves this by mapping out the actual structural relationships between files, classes, and functions. Instead of brute-forcing context by stuffing massive chunks of raw text into a prompt (which is highly token-inefficient) or relying on vague folder summaries, Vivian feeds our AI agent an optimized structural graph. This makes our method dramatically more token-efficient, faster, and cheaper, while giving the AI a native understanding of how your entire architecture connects.
 
 ## Demo
-*[Watch the Demonstration Video](./Demo.mp4)*
+*[Watch the Demonstration Video](https://youtu.be/JRHTtBRxPOg)*
 
 ## What it does
 Vivian is an interactive VS Code extension that turns your codebase into a living, visual map:
