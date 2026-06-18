@@ -81,6 +81,9 @@ def build_graph(
                 "functions": parsed.get("functions", []),
                 "classes": parsed.get("classes", []),
                 "interfaces": parsed.get("interfaces", []),
+                "structs": parsed.get("structs", []),
+                "enums": parsed.get("enums", []),
+                "records": parsed.get("records", []),
                 "filePath": rel_path
             }
         }
@@ -122,6 +125,42 @@ def build_graph(
             }
             add_relationship(relationships, "CONTAINS", rel_path, intf_id)
             class_locations[intf['name']] = rel_path
+
+        for struct in parsed.get("structs", []):
+            struct_id = f"{rel_path}::{struct['name']}"
+            nodes_dict[struct_id] = {
+                "id": struct_id,
+                "label": "Struct",
+                "properties": {
+                    "name": struct['name'],
+                    "line": struct.get('line', 0)
+                }
+            }
+            add_relationship(relationships, "CONTAINS", rel_path, struct_id)
+
+        for enum_def in parsed.get("enums", []):
+            enum_id = f"{rel_path}::{enum_def['name']}"
+            nodes_dict[enum_id] = {
+                "id": enum_id,
+                "label": "Enum",
+                "properties": {
+                    "name": enum_def['name'],
+                    "line": enum_def.get('line', 0)
+                }
+            }
+            add_relationship(relationships, "CONTAINS", rel_path, enum_id)
+
+        for record in parsed.get("records", []):
+            record_id = f"{rel_path}::{record['name']}"
+            nodes_dict[record_id] = {
+                "id": record_id,
+                "label": "Record",
+                "properties": {
+                    "name": record['name'],
+                    "line": record.get('line', 0)
+                }
+            }
+            add_relationship(relationships, "CONTAINS", rel_path, record_id)
 
         for target_imp in resolved_imports_rel:
             if target_imp in file_contents:

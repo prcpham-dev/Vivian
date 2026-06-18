@@ -10,6 +10,9 @@ _PY_IMPORT_RE = re.compile(r"^import\s+([\w.]+)", re.MULTILINE)
 def parse_python(content: str, file_path: str, workspace_root: str):
     functions: List[FunctionDef] = []
     classes: List[ClassDef] = []
+    structs: List[Any] = []
+    enums: List[Any] = []
+    records: List[Any] = []
     imports: List[str] = []
     
     root = Path(workspace_root).resolve()
@@ -35,19 +38,41 @@ def parse_python(content: str, file_path: str, workspace_root: str):
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 args = [a.arg for a in node.args.args]
-                functions.append(FunctionDef(
-                    name=node.name,
-                    params=", ".join(args),
-                    returnType="",
-                    line=node.lineno,
-                    calledBy=[], calls=[]
-                ))
+                functions.append({
+                    "name": node.name,
+                    "params": ", ".join(args),
+                    "returnType": "",
+                    "line": node.lineno,
+                    "calledBy": [], "calls": []
+                })
             elif isinstance(node, ast.ClassDef):
                 bases = []
+                is_enum = False
+                is_struct = False
                 for b in node.bases:
-                    if isinstance(b, ast.Name): bases.append(b.id)
-                    elif isinstance(b, ast.Attribute): bases.append(b.attr)
-                classes.append(ClassDef(name=node.name, extends=bases, line=node.lineno))
+                    if isinstance(b, ast.Name):
+                        bases.append(b.id)
+                        if b.id == "Enum": is_enum = True
+                        if b.id in ("NamedTuple", "TypedDict"): is_struct = True
+                    elif isinstance(b, ast.Attribute):
+                        bases.append(b.attr)
+                        if b.attr == "Enum": is_enum = True
+                
+                # Check decorators for dataclass
+                for dec in node.decorator_list:
+                    if isinstance(dec, ast.Name) and dec.id == "dataclass":
+                        is_struct = True
+                    elif isinstance(dec, ast.Call) and getattr(dec.func, 'id', '') == "dataclass":
+                        is_struct = True
+
+                if is_enum:
+                    enums.append({"name": node.name, "line": node.lineno})
+                elif is_struct:
+                    structs.append({"name": node.name, "line": node.lineno})
+                elif node.name.endswith("Record"):
+                    records.append({"name": node.name, "line": node.lineno})
+                else:
+                    classes.append({"name": node.name, "extends": bases, "line": node.lineno})
             elif isinstance(node, ast.Import):
                 for alias in node.names:
                     parts = alias.name.split(".")
@@ -96,7 +121,7 @@ def parse_python(content: str, file_path: str, workspace_root: str):
                 candidate = _find_py_base(parts)
                 imports.append(_try_py(candidate))
                 
-    return functions, classes, imports
+    return functions, classes, structs, enums, records, imports
 
 def _try_py(base: Path) -> Optional[str]:
     p = base.with_suffix(".py")

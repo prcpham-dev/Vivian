@@ -11,12 +11,15 @@ def parse_file(file_path: str, content: str, workspace_root: str, path_aliases: 
     functions: List[FunctionDef] = []
     classes: List[ClassDef] = []
     interfaces: List[InterfaceDef] = []
+    structs: List[dict] = []
+    enums: List[dict] = []
+    records: List[dict] = []
     imports: List[str] = []
     
     if ext == ".py":
-        functions, classes, imports = parsers.parse_python(content, file_path, workspace_root)
+        functions, classes, structs, enums, records, imports = parsers.parse_python(content, file_path, workspace_root)
     elif ext in {".ts", ".tsx", ".js", ".jsx"}:
-        functions, classes, interfaces, raw_imports = parsers.parse_ts_js(content)
+        functions, classes, interfaces, structs, enums, records, raw_imports = parsers.parse_ts_js(content)
         imports = [parsers.resolve_js(file_path, imp, workspace_root, path_aliases) for imp in raw_imports]
     elif ext == ".go":
         functions, classes, interfaces, raw_imports = parsers.parse_go(content)
@@ -40,6 +43,9 @@ def parse_file(file_path: str, content: str, workspace_root: str, path_aliases: 
         functions=functions,
         classes=classes,
         interfaces=interfaces,
+        structs=structs,
+        enums=enums,
+        records=records,
         imports=resolved_imports
     )
 

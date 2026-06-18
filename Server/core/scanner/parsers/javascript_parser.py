@@ -13,10 +13,16 @@ _TS_CLASS_RE = re.compile(r"class\s+(\w+)(?:\s+(?:extends|implements)\s+([\w<>,\
 _TS_INTF_RE = re.compile(r"interface\s+(\w+)(?:\s+extends\s+([\w<>,\s]+))?")
 _JS_FUNC_RE = re.compile(r"(?:function\s+(\w+)|const\s+(\w+)\s*=\s*(?:async\s*)?\([^)]*\)\s*=>)")
 
+_TS_ENUM_RE = re.compile(r"enum\s+(\w+)")
+_TS_TYPE_RE = re.compile(r"type\s+(\w+)\s*=\s*(.*)")
+
 def parse_ts_js(content: str):
     functions: List[FunctionDef] = []
     classes: List[ClassDef] = []
     interfaces: List[InterfaceDef] = []
+    structs: List[Dict] = []
+    enums: List[Dict] = []
+    records: List[Dict] = []
     raw_imports: List[str] = []
     
     for m in _JS_IMPORT_RE.finditer(content):
@@ -35,8 +41,16 @@ def parse_ts_js(content: str):
             name = m.group(1) or m.group(2)
             if name:
                 functions.append(FunctionDef(name=name, params="", returnType="", line=i, calledBy=[], calls=[]))
+        for m in _TS_ENUM_RE.finditer(line):
+            enums.append({"name": m.group(1), "line": i})
+        for m in _TS_TYPE_RE.finditer(line):
+            name, def_body = m.groups()
+            if "Record<" in def_body:
+                records.append({"name": name, "line": i})
+            else:
+                structs.append({"name": name, "line": i})
                 
-    return functions, classes, interfaces, raw_imports
+    return functions, classes, interfaces, structs, enums, records, raw_imports
 
 _JS_EXTENSIONS = [".ts", ".tsx", ".js", ".jsx", ".vue", ".mts", ".cts"]
 

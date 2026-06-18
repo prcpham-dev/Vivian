@@ -7,8 +7,8 @@ const NODE_COLORS: Record<string, string> = {
   Folder: '#878ba4ff',
   Class: '#dbd82aff',
   Function: '#81C784',
-  Interface: '#353be5ff',
-  Struct: '#7E57C2',
+  Interface: '#7b61ebff',
+  Struct: '#ff3e3eff',
   Enum: '#058c9eff',
   Record: '#d220d5ff',
 }
@@ -143,6 +143,9 @@ export function renderGraph(data: GraphData) {
     functions: n.properties.functions || [],
     classes: n.properties.classes || [],
     interfaces: n.properties.interfaces || [],
+    structs: n.properties.structs || [],
+    enums: n.properties.enums || [],
+    records: n.properties.records || [],
     r: NODE_RADII[n.label as string] || 7,
   }))
 
@@ -454,9 +457,15 @@ function showTooltip(event: any, d: any) {
   const tooltip = document.getElementById('tooltip')!
   const fCount = (d.functions || []).length
   const cCount = (d.classes || []).length
+  const sCount = (d.structs || []).length
+  const eCount = (d.enums || []).length
+  const rCount = (d.records || []).length
   tooltip.innerHTML = `<strong>${d.name}</strong><br><span style="color:#888">${d.label}</span>` +
     (fCount ? `<br>${fCount} function${fCount === 1 ? '' : 's'}` : '') +
     (cCount ? `<br>${cCount} class${cCount === 1 ? '' : 'es'}` : '') +
+    (sCount ? `<br>${sCount} struct${sCount === 1 ? '' : 's'}` : '') +
+    (eCount ? `<br>${eCount} enum${eCount === 1 ? '' : 's'}` : '') +
+    (rCount ? `<br>${rCount} record${rCount === 1 ? '' : 's'}` : '') +
     `<br><span style="color:#888;font-size:10px">${d.id}</span>`
   tooltip.classList.add('visible')
   moveTooltip(event)

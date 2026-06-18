@@ -40,8 +40,23 @@ class InterfaceDef(TypedDict, total=False):
     extends: List[str]
     line: int
 
-class ParsedFile(TypedDict):
+class StructDef(TypedDict, total=False):
+    name: str
+    line: int
+
+class EnumDef(TypedDict, total=False):
+    name: str
+    line: int
+
+class RecordDef(TypedDict, total=False):
+    name: str
+    line: int
+
+class ParsedFile(TypedDict, total=False):
     functions: List[FunctionDef]
     classes: List[ClassDef]
     interfaces: List[InterfaceDef]
+    structs: List[StructDef]
+    enums: List[EnumDef]
+    records: List[RecordDef]
     imports: List[str]
