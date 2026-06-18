@@ -49,9 +49,11 @@ body {
   font-size: 12px;
   outline: none;
 }
+
 #toolbar .search-container input[type=text]:focus {
   border-color: var(--vscode-focusBorder, #007acc);
 }
+
 #clear-search-btn {
   position: absolute;
   right: 4px;
@@ -66,6 +68,7 @@ body {
   padding: 2px 6px;
   display: none;
 }
+
 #clear-search-btn:hover {
   background: var(--vscode-button-secondaryHoverBackground, #45494e);
 }
@@ -136,27 +139,13 @@ svg {
   pointer-events: none;
 }
 
-.link.IMPORTS {
-  stroke: #64B5F6;
-}
-
-.link.CONTAINS {
-  stroke: #607D8B;
-  stroke-dasharray: 3, 3;
-}
-
-.link.CALLS {
-  stroke: #FFD54F;
-}
-
-.link.INHERITS {
-  stroke: #CE93D8;
-  stroke-dasharray: 5, 2;
-}
-
 .link.highlighted {
   stroke-opacity: 0.9;
   stroke-width: 2.4;
+}
+
+.link.dimmed {
+  stroke-opacity: 0.08;
 }
 
 .node circle {

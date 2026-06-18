@@ -3,21 +3,34 @@ import { vscode } from './api'
 
 // ── Constants ────────────────────────────────────────
 const NODE_COLORS: Record<string, string> = {
-  File: '#4FC3F7',
-  Folder: '#78909C',
-  Class: '#FFB74D',
+  File: '#4DD0E1',
+  Folder: '#878ba4ff',
+  Class: '#dbd82aff',
   Function: '#81C784',
-  Interface: '#CE93D8',
-  Struct: '#F48FB1',
-  Enum: '#80CBC4',
-  Record: '#A5D6A7',
+  Interface: '#353be5ff',
+  Struct: '#7E57C2',
+  Enum: '#058c9eff',
+  Record: '#d220d5ff',
 }
 
 const LINK_COLORS: Record<string, string> = {
-  IMPORTS: '#64B5F6',
-  CONTAINS: '#607D8B',
-  CALLS: '#FFD54F',
-  INHERITS: '#CE93D8',
+  IMPORTS: '#40C4FF',
+  CONTAINS: '#00E676',
+  CONTAINS_FOLDER_FILE: '#536DFE',
+  CALLS: '#ffb007',
+  CALLS_FN: '#FFEB3B',
+  INHERITS: '#E040FB',
+}
+// Returns the effective link type used for colouring/markers.
+// Sub-types let CONTAINS and CALLS edges be styled by their connected node kinds.
+function effectiveLinkType(d: any): string {
+  if (d.type === 'CALLS' && d.sourceLabel === 'Function' && d.targetLabel === 'Function') {
+    return 'CALLS_FN'
+  }
+  if (d.type === 'CONTAINS') {
+    if (d.sourceLabel === 'Folder' && d.targetLabel === 'File') return 'CONTAINS_FOLDER_FILE'
+  }
+  return d.type
 }
 
 const NODE_RADII: Record<string, number> = {
@@ -119,6 +132,7 @@ export function renderGraph(data: GraphData) {
   buildFilterChips()
 
   const validIds = new Set(data.nodes.map(n => n.id))
+  const nodeLabels = new Map(data.nodes.map(n => [n.id, n.label]))
 
   // Build D3 node/link arrays
   const nodes: D3Node[] = data.nodes.map(n => ({
@@ -139,6 +153,8 @@ export function renderGraph(data: GraphData) {
       target: r.targetId,
       type: r.type,
       id: r.id,
+      sourceLabel: nodeLabels.get(r.sourceId),
+      targetLabel: nodeLabels.get(r.targetId),
     }))
 
   // Destroy old simulation
@@ -162,7 +178,8 @@ export function renderGraph(data: GraphData) {
     .data(links, (d: any) => d.id)
     .join('line')
     .attr('class', (d: any) => 'link ' + d.type)
-    .attr('marker-end', (d: any) => `url(#arrow-${d.type})`)
+    .attr('stroke', (d: any) => LINK_COLORS[effectiveLinkType(d)] || '#aaa')
+    .attr('marker-end', (d: any) => `url(#arrow-${effectiveLinkType(d)})`)
 
   // ── Nodes ────────────────────────────
   const node = nodesG.selectAll('.node')
@@ -318,6 +335,11 @@ function selectNode(d: any, nodeSel: any, linkSel: any) {
       const tid = typeof l.target === 'object' ? l.target.id : l.target
       return sid === d.id || tid === d.id
     })
+    .classed('dimmed', (l: any) => {
+      const sid = typeof l.source === 'object' ? l.source.id : l.source
+      const tid = typeof l.target === 'object' ? l.target.id : l.target
+      return sid !== d.id && tid !== d.id
+    })
 
   showInfoPanel(d)
 }
@@ -325,7 +347,7 @@ function selectNode(d: any, nodeSel: any, linkSel: any) {
 function clearSelection() {
   selectedNode = null
   nodesG.selectAll('.node').classed('selected', false).classed('dimmed', false)
-  linksG.selectAll('.link').classed('highlighted', false)
+  linksG.selectAll('.link').classed('highlighted', false).classed('dimmed', false)
   document.getElementById('info-panel')!.classList.remove('visible')
 }
 

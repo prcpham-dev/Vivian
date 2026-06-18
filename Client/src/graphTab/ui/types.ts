@@ -37,4 +37,6 @@ export interface D3Link {
   target: any
   type: string
   id: string
+  sourceLabel?: string
+  targetLabel?: string
 }

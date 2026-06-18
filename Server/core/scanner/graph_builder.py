@@ -205,6 +205,12 @@ def _track_function_calls_and_inheritance(
         src_content = contents.get(src, "")
         if not src_content: continue
             
+        src_node = nodes.get(src)
+        src_functions = []
+        if src_node and src_node["label"] == "File":
+            src_functions = src_node["properties"].get("functions", [])
+            src_functions = sorted(src_functions, key=lambda f: f.get("line", 0))
+
         for tgt in targets:
             tgt_node = nodes.get(tgt)
             if not tgt_node or tgt_node["label"] != "File": continue
@@ -214,10 +220,22 @@ def _track_function_calls_and_inheritance(
                 if not func_name: continue
                     
                 pattern = r'\b' + re.escape(func_name) + r'\b'
-                if re.search(pattern, src_content):
-                    func.setdefault("calledBy", []).append(src)
+                for match in re.finditer(pattern, src_content):
+                    line_no = src_content.count('\n', 0, match.start()) + 1
+                    
+                    caller_func = None
+                    for i in range(len(src_functions)):
+                        if src_functions[i].get("line", 0) <= line_no:
+                            if i + 1 < len(src_functions) and src_functions[i+1].get("line", 0) <= line_no:
+                                continue
+                            caller_func = src_functions[i]
+                            break
+                            
                     func_id = f"{tgt}::{func_name}"
-                    add_relationship(relationships, "CALLS", src, func_id)
+                    if caller_func:
+                        caller_id = f"{src}::{caller_func['name']}"
+                        func.setdefault("calledBy", []).append(caller_id)
+                        add_relationship(relationships, "CALLS", caller_id, func_id)
 
 def save_graph_file(workspace_root: str, graph: KnowledgeGraph) -> None:
     graph_path = Path(workspace_root) / GRAPH_FILE_NAME
