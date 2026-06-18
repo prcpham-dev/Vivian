@@ -49,9 +49,15 @@ def _parse_python(content: str, file_path: str, workspace_root: str):
     classes: List[ClassDef] = []
     imports: List[str] = []
     
-    # 1. Parse AST for functions and classes
+    root = Path(workspace_root).resolve()
+    from_dir = Path(file_path).parent
+    
+    ast_success = False
+    
+    # 1. Parse AST for functions, classes, and imports
     try:
         tree = ast.parse(content)
+        ast_success = True
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 args = [a.arg for a in node.args.args]
@@ -68,22 +74,49 @@ def _parse_python(content: str, file_path: str, workspace_root: str):
                     if isinstance(b, ast.Name): bases.append(b.id)
                     elif isinstance(b, ast.Attribute): bases.append(b.attr)
                 classes.append(ClassDef(name=node.name, extends=bases, line=node.lineno))
+            elif isinstance(node, ast.Import):
+                for alias in node.names:
+                    parts = alias.name.split(".")
+                    candidate = root.joinpath(*parts)
+                    imports.append(_try_py(candidate))
+            elif isinstance(node, ast.ImportFrom):
+                level = node.level or 0
+                module = node.module or ""
+                
+                if level > 0:
+                    target_dir = from_dir
+                    for _ in range(level - 1): target_dir = target_dir.parent
+                    base_path = target_dir.joinpath(*module.split(".")) if module else target_dir
+                else:
+                    base_path = root.joinpath(*module.split(".")) if module else root
+                    
+                imports.append(_try_py(base_path))
+                
+                for alias in node.names:
+                    if alias.name != "*":
+                        imports.append(_try_py(base_path / alias.name))
     except SyntaxError:
         pass
         
-    # 2. Parse Imports (Regex for faster, accurate path resolution)
-    root = Path(workspace_root).resolve()
-    from_dir = Path(file_path).parent
-    for m in _PY_FROM_RE.finditer(content):
-        dots = m.group(1)
-        module = m.group(2)
-        if dots:
-            target_dir = from_dir
-            for _ in range(len(dots) - 1): target_dir = target_dir.parent
-            parts = module.split(".") if module else []
-            candidate = target_dir.joinpath(*parts)
-            imports.append(_try_py(candidate))
-        else:
+    # 2. Parse Imports (Fallback Regex if AST fails)
+    if not ast_success:
+        for m in _PY_FROM_RE.finditer(content):
+            dots = m.group(1)
+            module = m.group(2)
+            if dots:
+                target_dir = from_dir
+                for _ in range(len(dots) - 1): target_dir = target_dir.parent
+                parts = module.split(".") if module else []
+                candidate = target_dir.joinpath(*parts)
+                imports.append(_try_py(candidate))
+            else:
+                if module:
+                    parts = module.split(".")
+                    candidate = root.joinpath(*parts)
+                    imports.append(_try_py(candidate))
+                    
+        for m in _PY_IMPORT_RE.finditer(content):
+            module = m.group(1)
             if module:
                 parts = module.split(".")
                 candidate = root.joinpath(*parts)
