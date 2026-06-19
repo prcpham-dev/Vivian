@@ -1,6 +1,6 @@
 {
-  "name": "vivian",
-  "displayName": "Vivian",
+  "name": "vivian-vision",
+  "displayName": "Vivian - Code vision",
   "description": "Code analysis tool designed to visualize the codebase as an interactive graph.",
   "version": "1.0.0",
   "publisher": "prcpham",
