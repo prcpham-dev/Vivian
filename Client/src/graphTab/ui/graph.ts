@@ -3,8 +3,8 @@ import { vscode } from './api'
 
 // ── Constants ────────────────────────────────────────
 const NODE_COLORS: Record<string, string> = {
-  File: '#4DD0E1',
   Folder: '#878ba4ff',
+  File: '#4DD0E1',
   Class: '#dbd82aff',
   Function: '#00ff0dff',
   Method: '#00ff99ff',
@@ -22,6 +22,7 @@ const LINK_COLORS: Record<string, string> = {
   CALLS_FN: '#FFEB3B',
   INHERITS: '#E040FB',
 }
+
 // Returns the effective link type used for colouring/markers.
 // Sub-types let CONTAINS and CALLS edges be styled by their connected node kinds.
 function effectiveLinkType(d: any): string {
