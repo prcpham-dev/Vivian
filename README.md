@@ -75,13 +75,17 @@ Once the package is built:
 Once the extension is installed, you can launch the Vivian interactive graph in two ways:
 
 1. **Status Bar Button:** Click the **Vivian** button located in:
+
    - The bottom-left status bar of your VS Code window.
+
      <img src="assets/button.png" width="250" alt="Vivian Status Bar Button">
-     
-   - The top right in explorer view.
+
+   - The top right in Explorer view.
+
      <img src="assets/button_2.png" width="250" alt="Vivian Status Bar Button">
 
 2. **Command Palette:** If you don't see the button, open the Command Palette (`Cmd+Shift+P` on Mac or `Ctrl+Shift+P` on Windows), type **Vivian**, and select **Vivian: Open Graph**.
+
    <img src="assets/command_pallet.png" width="500" alt="Vivian Command Palette">
 
 ## Project Structure
