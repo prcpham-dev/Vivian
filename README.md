@@ -99,3 +99,9 @@ Vivian/
 │
 └── README.md
 ```
+
+## Credits
+- **[Percy Pham](https://github.com/prcpham-dev)** — Dev
+- **[Minh Pham](https://github.com/Bubseatbubs)** — Dev + Editor
+- **[Danny Pham](https://github.com/phamdanny)** — Dev + CFO
+- **Darren Tai** — Art
