@@ -16,7 +16,7 @@ def get_project_dir(workspace_root: str) -> Path:
     if not project_name:
         project_name = "default_project"
         
-    safe_path = workspace_root.replace("/", "_").replace("\\", "_").strip("_")
+    safe_path = workspace_root.replace("/", "_").replace("\\", "_").replace(":", "_").strip("_")
     safe_name = f"{project_name}--{safe_path}"
     
     project_dir = home / ".vivian" / "projects" / safe_name
