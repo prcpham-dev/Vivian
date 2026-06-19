@@ -12,21 +12,14 @@ export function initChat() {
 
   chatBtn.addEventListener('click', () => chatDrawer.classList.toggle('open'))
   closeChatBtn.addEventListener('click', () => chatDrawer.classList.remove('open'))
+  
+  if (clearChatBtn) {
+    clearChatBtn.addEventListener('click', () => {
+      chatMessages.innerHTML = ''
+    })
+  }
 
-  clearChatBtn.addEventListener('click', async () => {
-    if (!WORKSPACE_ROOT) return;
-    try {
-      const res = await fetch(`${API_BASE}/chat/clear?workspace_root=${encodeURIComponent(WORKSPACE_ROOT)}`, {
-        method: 'POST'
-      });
-      if (res.ok) {
-        chatMessages.innerHTML = '';
-        appendStatus('Chat history cleared.');
-      }
-    } catch (err) {
-      appendStatus('Error clearing chat history.');
-    }
-  });
+
 
   let ws: WebSocket | null = null
   let wsReady = false

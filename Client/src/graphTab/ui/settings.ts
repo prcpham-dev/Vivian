@@ -1,20 +1,23 @@
-import { API_BASE, fetchJson } from './api'
+import { API_BASE, fetchJson, vscode } from './api'
 
 export function initSettings() {
   const apiKeySection   = document.getElementById('api-key-section')!
-  const apiKeyFormRow   = document.getElementById('api-key-form-row')!
   const apiKeyInput     = document.getElementById('api-key-input') as HTMLInputElement
   const apiKeySaveBtn   = document.getElementById('api-key-save-btn') as HTMLButtonElement
   const apiKeyStatus    = document.getElementById('api-key-status')!
-  const apiKeyToggleBtn = document.getElementById('api-key-toggle-btn')!
   const modelSelect     = document.getElementById('model-select') as HTMLSelectElement
   const modelSaveBtn    = document.getElementById('model-save-btn') as HTMLButtonElement
-  const modelSelectRow  = document.getElementById('model-select-row')!
+  const chatSettingsBtn = document.getElementById('chat-settings-btn')!
+  const openProjectsBtn = document.getElementById('open-projects-btn')!
 
-  function setKeyFormVisible(visible: boolean) {
-    apiKeyFormRow.style.display = visible ? 'flex' : 'none'
-    modelSelectRow.style.display = visible ? 'flex' : 'none'
-    apiKeyToggleBtn.textContent = visible ? '▲' : '▼'
+  chatSettingsBtn.addEventListener('click', () => {
+    apiKeySection.style.display = apiKeySection.style.display === 'none' ? 'block' : 'none'
+  })
+
+  if (openProjectsBtn) {
+    openProjectsBtn.addEventListener('click', () => {
+      vscode.postMessage({ command: 'openProjectsFolder' })
+    })
   }
 
   async function loadSettings() {
@@ -22,10 +25,8 @@ export function initSettings() {
       const data = await fetchJson('/settings/api-key')
       if (data.api_key_set) {
         apiKeyStatus.textContent = 'API key is set'
-        setKeyFormVisible(false)
       } else {
         apiKeyStatus.textContent = 'No API key! Enter one to enable chat'
-        setKeyFormVisible(true)
       }
       
       const modelData = await fetchJson('/settings/model')
@@ -36,10 +37,6 @@ export function initSettings() {
       apiKeyStatus.textContent = ''
     }
   }
-
-  apiKeyToggleBtn.addEventListener('click', () => {
-    setKeyFormVisible(apiKeyFormRow.style.display === 'none')
-  })
 
   apiKeySaveBtn.addEventListener('click', async () => {
     const key = apiKeyInput.value.trim()
@@ -55,7 +52,6 @@ export function initSettings() {
       if (res.ok) {
         apiKeyInput.value = ''
         apiKeyStatus.textContent = 'API key saved'
-        setKeyFormVisible(false)
       } else {
         apiKeyStatus.textContent = 'Failed to save key'
       }
