@@ -90,15 +90,35 @@ def build_graph(
         
         for func in parsed.get("functions", []):
             func_id = f"{rel_path}::{func['name']}"
+            
+            parent_id = rel_path
+            func_line = func.get("line", 0)
+            label = "Function"
+            
+            if func_line > 0:
+                best_parent_name = None
+                best_parent_line = 0
+                for c_type in ["classes", "interfaces", "structs", "enums", "records"]:
+                    for c in parsed.get(c_type, []):
+                        c_line = c.get("line", 0)
+                        if c_line > 0 and c_line <= func_line:
+                            if c_line > best_parent_line:
+                                best_parent_line = c_line
+                                best_parent_name = c["name"]
+                
+                if best_parent_name:
+                    parent_id = f"{rel_path}::{best_parent_name}"
+                    label = "Method"
+
             nodes_dict[func_id] = {
                 "id": func_id,
-                "label": "Function",
+                "label": label,
                 "properties": {
                     "name": func['name'],
                     "line": func.get('line', 0)
                 }
             }
-            add_relationship(relationships, "CONTAINS", rel_path, func_id)
+            add_relationship(relationships, "CONTAINS", parent_id, func_id)
             
         for cls in parsed.get("classes", []):
             cls_id = f"{rel_path}::{cls['name']}"

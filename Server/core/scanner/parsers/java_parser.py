@@ -18,25 +18,26 @@ def parse_java(content: str):
     for m in _JAVA_IMPORT_RE.finditer(content):
         raw_imports.append(m.group(1))
         
-    lines = content.splitlines()
-    for i, line in enumerate(lines, 1):
-        for m in _JAVA_CLASS_RE.finditer(line):
-            name, ext, impl = m.groups()
-            extends_list = [ext] if ext else []
-            if impl:
-                extends_list.extend([x.strip() for x in impl.split(",") if x.strip()])
-            classes.append(ClassDef(name=name, extends=extends_list, line=i))
+    for m in _JAVA_CLASS_RE.finditer(content):
+        name, ext, impl = m.groups()
+        extends_list = [ext] if ext else []
+        if impl:
+            extends_list.extend([x.strip() for x in impl.split(",") if x.strip()])
+        line = content.count('\n', 0, m.start()) + 1
+        classes.append(ClassDef(name=name, extends=extends_list, line=line))
+        
+    for m in _JAVA_INTF_RE.finditer(content):
+        name, ext = m.groups()
+        extends_list = [x.strip() for x in ext.split(",")] if ext else []
+        line = content.count('\n', 0, m.start()) + 1
+        interfaces.append(InterfaceDef(name=name, extends=extends_list, line=line))
+        
+    for m in _JAVA_FUNC_RE.finditer(content):
+        name = m.group(1)
+        if name not in {"if", "for", "while", "switch", "catch"}:
+            line = content.count('\n', 0, m.start()) + 1
+            functions.append(FunctionDef(name=name, params="", returnType="", line=line, calledBy=[], calls=[]))
             
-        for m in _JAVA_INTF_RE.finditer(line):
-            name, ext = m.groups()
-            extends_list = [x.strip() for x in ext.split(",")] if ext else []
-            interfaces.append(InterfaceDef(name=name, extends=extends_list, line=i))
-            
-        for m in _JAVA_FUNC_RE.finditer(line):
-            name = m.group(1)
-            if name not in {"if", "for", "while", "switch", "catch"}:
-                functions.append(FunctionDef(name=name, params="", returnType="", line=i, calledBy=[], calls=[]))
-                
     return functions, classes, interfaces, raw_imports
 
 def resolve_java_imports(file_path: str, raw_imports: List[str], workspace_root: str):

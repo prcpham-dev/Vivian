@@ -18,27 +18,28 @@ def parse_cs(content: str):
     for m in _CS_IMPORT_RE.finditer(content):
         raw_imports.append(m.group(1))
         
-    lines = content.splitlines()
-    for i, line in enumerate(lines, 1):
-        for m in _CS_CLASS_RE.finditer(line):
-            name, ext = m.groups()
-            extends_list = []
-            if ext:
-                extends_list.extend([x.strip() for x in ext.split(",") if x.strip()])
-            classes.append(ClassDef(name=name, extends=extends_list, line=i))
+    for m in _CS_CLASS_RE.finditer(content):
+        name, ext = m.groups()
+        extends_list = []
+        if ext:
+            extends_list.extend([x.strip() for x in ext.split(",") if x.strip()])
+        line = content.count('\n', 0, m.start()) + 1
+        classes.append(ClassDef(name=name, extends=extends_list, line=line))
+        
+    for m in _CS_INTF_RE.finditer(content):
+        name, ext = m.groups()
+        extends_list = []
+        if ext:
+            extends_list.extend([x.strip() for x in ext.split(",") if x.strip()])
+        line = content.count('\n', 0, m.start()) + 1
+        interfaces.append(InterfaceDef(name=name, extends=extends_list, line=line))
+        
+    for m in _CS_FUNC_RE.finditer(content):
+        name = m.group(1)
+        if name not in {"if", "for", "while", "switch", "catch", "get", "set"}:
+            line = content.count('\n', 0, m.start()) + 1
+            functions.append(FunctionDef(name=name, params="", returnType="", line=line, calledBy=[], calls=[]))
             
-        for m in _CS_INTF_RE.finditer(line):
-            name, ext = m.groups()
-            extends_list = []
-            if ext:
-                extends_list.extend([x.strip() for x in ext.split(",") if x.strip()])
-            interfaces.append(InterfaceDef(name=name, extends=extends_list, line=i))
-            
-        for m in _CS_FUNC_RE.finditer(line):
-            name = m.group(1)
-            if name not in {"if", "for", "while", "switch", "catch", "get", "set"}:
-                functions.append(FunctionDef(name=name, params="", returnType="", line=i, calledBy=[], calls=[]))
-                
     return functions, classes, interfaces, raw_imports
 
 def resolve_cs_imports(file_path: str, raw_imports: List[str], workspace_root: str):

@@ -21,11 +21,12 @@ def parse_rust(content: str, file_path: str):
         if candidate1.exists(): imports.append(str(candidate1))
         elif candidate2.exists(): imports.append(str(candidate2))
         
-    lines = content.splitlines()
-    for i, line in enumerate(lines, 1):
-        for m in _RS_STRUCT_RE.finditer(line):
-            classes.append(ClassDef(name=m.group(1), extends=[], line=i))
-        for m in _RS_FUNC_RE.finditer(line):
-            functions.append(FunctionDef(name=m.group(1), params="", returnType="", line=i, calledBy=[], calls=[]))
+    for m in _RS_STRUCT_RE.finditer(content):
+        line = content.count('\n', 0, m.start()) + 1
+        classes.append(ClassDef(name=m.group(1), extends=[], line=line))
+        
+    for m in _RS_FUNC_RE.finditer(content):
+        line = content.count('\n', 0, m.start()) + 1
+        functions.append(FunctionDef(name=m.group(1), params="", returnType="", line=line, calledBy=[], calls=[]))
             
     return functions, classes, [], imports

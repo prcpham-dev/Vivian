@@ -1,4 +1,4 @@
-export type NodeLabel = 'File' | 'Folder' | 'Class' | 'Function' | 'Interface' | 'Struct' | 'Enum' | 'Record'
+export type NodeLabel = 'File' | 'Folder' | 'Class' | 'Function' | 'Method' | 'Interface' | 'Struct' | 'Enum' | 'Record'
 export type RelationshipType = 'CONTAINS' | 'IMPORTS' | 'CALLS' | 'INHERITS'
 
 export interface FunctionDef {

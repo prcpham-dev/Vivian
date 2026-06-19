@@ -29,26 +29,29 @@ def parse_ts_js(content: str):
         imp = m.group(1) or m.group(2) or m.group(3)
         if imp: raw_imports.append(imp)
         
-    lines = content.splitlines()
-    for i, line in enumerate(lines, 1):
-        for m in _TS_CLASS_RE.finditer(line):
-            name, ext = m.groups()
-            classes.append(ClassDef(name=name, extends=[ext.strip()] if ext else [], line=i))
-        for m in _TS_INTF_RE.finditer(line):
-            name, ext = m.groups()
-            interfaces.append(InterfaceDef(name=name, extends=[ext.strip()] if ext else [], line=i))
-        for m in _JS_FUNC_RE.finditer(line):
-            name = m.group(1) or m.group(2)
-            if name:
-                functions.append(FunctionDef(name=name, params="", returnType="", line=i, calledBy=[], calls=[]))
-        for m in _TS_ENUM_RE.finditer(line):
-            enums.append({"name": m.group(1), "line": i})
-        for m in _TS_TYPE_RE.finditer(line):
-            name, def_body = m.groups()
-            if "Record<" in def_body:
-                records.append({"name": name, "line": i})
-            else:
-                structs.append({"name": name, "line": i})
+    for m in _TS_CLASS_RE.finditer(content):
+        name, ext = m.groups()
+        line = content.count('\n', 0, m.start()) + 1
+        classes.append(ClassDef(name=name, extends=[ext.strip()] if ext else [], line=line))
+    for m in _TS_INTF_RE.finditer(content):
+        name, ext = m.groups()
+        line = content.count('\n', 0, m.start()) + 1
+        interfaces.append(InterfaceDef(name=name, extends=[ext.strip()] if ext else [], line=line))
+    for m in _JS_FUNC_RE.finditer(content):
+        name = m.group(1) or m.group(2)
+        if name:
+            line = content.count('\n', 0, m.start()) + 1
+            functions.append(FunctionDef(name=name, params="", returnType="", line=line, calledBy=[], calls=[]))
+    for m in _TS_ENUM_RE.finditer(content):
+        line = content.count('\n', 0, m.start()) + 1
+        enums.append({"name": m.group(1), "line": line})
+    for m in _TS_TYPE_RE.finditer(content):
+        name, def_body = m.groups()
+        line = content.count('\n', 0, m.start()) + 1
+        if "Record<" in def_body:
+            records.append({"name": name, "line": line})
+        else:
+            structs.append({"name": name, "line": line})
                 
     return functions, classes, interfaces, structs, enums, records, raw_imports
 

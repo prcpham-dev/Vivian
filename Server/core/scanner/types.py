@@ -1,6 +1,6 @@
 from typing import List, Literal, TypedDict, Dict, Any
 
-NodeLabel = Literal["File", "Folder", "Class", "Function", "Interface", "Struct", "Enum", "Record"]
+NodeLabel = Literal["File", "Folder", "Class", "Function", "Method", "Interface", "Struct", "Enum", "Record"]
 RelationshipType = Literal["CONTAINS", "IMPORTS", "CALLS", "INHERITS"]
 
 class GraphNode(TypedDict):

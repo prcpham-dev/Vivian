@@ -15,11 +15,10 @@ def parse_cpp(content: str):
     for m in _CPP_INCLUDE_RE.finditer(content):
         raw_imports.append(m.group(1))
         
-    lines = content.splitlines()
-    for i, line in enumerate(lines, 1):
-        for m in _CPP_CLASS_RE.finditer(line):
-            name, ext = m.groups()
-            classes.append(ClassDef(name=name, extends=[ext] if ext else [], line=i))
+    for m in _CPP_CLASS_RE.finditer(content):
+        name, ext = m.groups()
+        line = content.count('\n', 0, m.start()) + 1
+        classes.append(ClassDef(name=name, extends=[ext] if ext else [], line=line))
             
     return functions, classes, [], raw_imports
 

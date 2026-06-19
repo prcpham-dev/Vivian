@@ -20,14 +20,15 @@ def parse_go(content: str):
         for imp_m in _GO_SINGLE_IMPORT_RE.finditer(block_m.group(1)):
             raw_imports.append(imp_m.group(1))
             
-    lines = content.splitlines()
-    for i, line in enumerate(lines, 1):
-        for m in _GO_STRUCT_RE.finditer(line):
-            classes.append(ClassDef(name=m.group(1), extends=[], line=i))
-        for m in _GO_INTF_RE.finditer(line):
-            interfaces.append(InterfaceDef(name=m.group(1), extends=[], line=i))
-        for m in _GO_FUNC_RE.finditer(line):
-            functions.append(FunctionDef(name=m.group(1), params="", returnType="", line=i, calledBy=[], calls=[]))
+    for m in _GO_STRUCT_RE.finditer(content):
+        line = content.count('\n', 0, m.start()) + 1
+        classes.append(ClassDef(name=m.group(1), extends=[], line=line))
+    for m in _GO_INTF_RE.finditer(content):
+        line = content.count('\n', 0, m.start()) + 1
+        interfaces.append(InterfaceDef(name=m.group(1), extends=[], line=line))
+    for m in _GO_FUNC_RE.finditer(content):
+        line = content.count('\n', 0, m.start()) + 1
+        functions.append(FunctionDef(name=m.group(1), params="", returnType="", line=line, calledBy=[], calls=[]))
             
     return functions, classes, interfaces, raw_imports
 

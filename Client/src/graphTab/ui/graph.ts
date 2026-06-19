@@ -6,7 +6,8 @@ const NODE_COLORS: Record<string, string> = {
   File: '#4DD0E1',
   Folder: '#878ba4ff',
   Class: '#dbd82aff',
-  Function: '#81C784',
+  Function: '#00ff0dff',
+  Method: '#00ff99ff',
   Interface: '#7b61ebff',
   Struct: '#ff3e3eff',
   Enum: '#058c9eff',
@@ -38,6 +39,7 @@ const NODE_RADII: Record<string, number> = {
   Folder: 11,
   Class: 8,
   Function: 6,
+  Method: 6,
   Interface: 7,
   Struct: 7,
   Enum: 6,
@@ -47,7 +49,7 @@ const NODE_RADII: Record<string, number> = {
 // ── State ────────────────────────────────────────────
 let graphData: GraphData | null = null
 let activeRelTypes = new Set(['IMPORTS', 'CALLS', 'INHERITS', 'CONTAINS'])
-let activeNodeTypes = new Set(['File', 'Folder', 'Class', 'Function', 'Interface', 'Struct', 'Enum', 'Record'])
+let activeNodeTypes = new Set(['File', 'Folder', 'Class', 'Function', 'Method', 'Interface', 'Struct', 'Enum', 'Record'])
 let selectedNode: D3Node | null = null
 let simulation: any = null
 
