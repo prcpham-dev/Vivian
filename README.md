@@ -1,5 +1,7 @@
 # Vivian <img src="assets/icon.png" width="30" style="vertical-align:middle; margin-bottom:5px;" alt="">
 
+[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/prcpham.vivian-vision?color=blue&label=VS%20Code%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=prcpham.vivian-vision)
+
 Vivian is an intelligent code analysis tool designed to visualize the codebase as an interactive graph, making it easier for both developers and AI agents to read, follow, and understand code structure. While it includes vulnerability management capabilities, its primary focus is on structural visualization and agentic interaction. It consists of a VS Code extension (Client) and a Python backend service (Server).
 
 ## Inspiration
@@ -44,19 +46,30 @@ Before running the setup scripts, please ensure you have the following installed
 
 ## Installation and Setup
 
-The easiest way to build the extension and install the required Python dependencies is to use the provided setup scripts. These scripts will automatically install the Node dependencies, package the VS Code extension, and create the Python virtual environment for the backend server.
+The easiest way to install Vivian is directly from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=prcpham.vivian-vision).
 
-**For Mac/Linux:**
-Double-click the `setup.command` file in Finder, or run `./setup.command` from your terminal.
+Alternatively, if you'd like to build the extension from source and install the required Python dependencies, run the following commands in your terminal:
 
-**For Windows:**
-Double-click the `setup.bat` file in Explorer.
+**1. Setup Client (VS Code Extension):**
+```bash
+npm install
+npm run package
+```
 
-Once the script finishes:
+**2. Setup Server (Python Backend):**
+```bash
+cd Server
+python3 -m venv venv
+source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+pip install -r ../requirements.txt
+cd ..
+```
+
+Once the package is built:
 1. Open the Extensions view in VS Code (`Cmd+Shift+X` or `Ctrl+Shift+X`).
 2. Click the `...` (Views and More Actions) button at the top right of the Extensions panel.
 3. Select **Install from VSIX...**
-4. Choose the newly generated `vivian-1.0.0.vsix` file located in your project root directory.
+4. Choose the newly generated `.vsix` file located in your project root directory.
 
 ## How to Use
 Once the extension is installed, you can launch the Vivian interactive graph in two ways:
