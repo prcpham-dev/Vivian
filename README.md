@@ -92,15 +92,12 @@ Once the extension is installed, you can launch the Vivian interactive graph in 
 ```text
 Vivian/
 ├── Client/                 # VS Code Extension (TypeScript)
-│   ├── src/                # Extension source code
-│   └── package.json        # Extension manifest and dependencies
-│
+│   └── src/                # Extension source code
 ├── Server/                 # Python Backend (FastAPI / WebSockets)
 │   ├── core/               # Core business logic and LLM agents
 │   ├── handlers/           # Request and WebSocket handlers
-│   ├── main.py             # Server entry point
-│   └── requirements.txt    # Python dependencies
-│
+│   └──  main.py             # Server entry point
+├── package.json            # Extension manifest and dependencies
 └── README.md
 ```
 
