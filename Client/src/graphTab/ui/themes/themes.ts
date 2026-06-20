@@ -329,19 +329,63 @@ export function initTheme() {
     else renderCustomEditor()
   }
 
+  function deleteTheme(name: string) {
+    allThemes = allThemes.filter(t => t.name !== name)
+    if (activeThemeName === name) {
+      const fallback = builtInThemes[0]
+      if (fallback) selectTheme(fallback)
+    } else {
+      persistUserThemes()
+    }
+    renderThemesList()
+  }
+
   function renderThemesList() {
     themeList.innerHTML = ''
+    let addedCustomDivider = false
+
     getAllThemes().forEach(theme => {
-      const item = document.createElement('button')
-      item.type = 'button'
+      if (theme.custom && !addedCustomDivider) {
+        addedCustomDivider = true
+        const divider = document.createElement('div')
+        divider.className = 'theme-list-divider'
+        divider.textContent = 'Custom Themes'
+        themeList.appendChild(divider)
+      }
+
+      const item = document.createElement('div')
       item.className = 'theme-list-item' + (theme.name === activeThemeName ? ' active' : '')
       const previewColors = { ...theme.nodeColors, ...theme.linkColors }
-      const previewKeys = [...NODE_COLOR_KEYS.slice(0, 5), ...LINK_COLOR_KEYS.slice(0, 3)]
-      item.innerHTML = `
-        <span class="theme-list-name">${theme.name}${theme.custom ? ' <span class="theme-custom-badge">Custom</span>' : ''}</span>
-        <span class="theme-list-preview">${renderThemePreview(previewColors, previewKeys)}</span>
+      const previewKeys = [...NODE_COLOR_KEYS.slice(0, 5)]
+      
+      let html = `
+        <div class="theme-list-item-content">
+          <div class="theme-list-name-container">
+            <span class="theme-list-name" title="${theme.name}">${theme.name}</span>
+          </div>
+          <span class="theme-list-preview">
+            ${renderThemePreview(previewColors, previewKeys)}
+          </span>
+        </div>
       `
-      item.addEventListener('click', () => { selectTheme(theme); renderThemesList() })
+      if (theme.custom) {
+        html += `<button type="button" class="theme-delete-btn" title="Delete theme">✕</button>`
+      } else {
+        html += `<div class="theme-delete-placeholder"></div>`
+      }
+      item.innerHTML = html
+
+      const content = item.querySelector('.theme-list-item-content') as HTMLElement
+      content.addEventListener('click', () => { selectTheme(theme); renderThemesList() })
+
+      const delBtn = item.querySelector('.theme-delete-btn') as HTMLButtonElement | null
+      if (delBtn) {
+        delBtn.addEventListener('click', (e) => {
+          e.stopPropagation()
+          deleteTheme(theme.name)
+        })
+      }
+
       themeList.appendChild(item)
     })
   }

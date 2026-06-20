@@ -128,22 +128,77 @@
   background: var(--vscode-list-activeSelectionBackground, #094771);
 }
 
-.theme-list-name {
-  font-weight: 600;
+.theme-list-item-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.theme-delete-btn {
+  background: none;
+  border: none;
+  color: var(--vscode-icon-foreground, #c5c5c5);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+  transition: opacity 0.15s, background 0.15s, color 0.15s;
+  width: 22px;
+  height: 22px;
   flex-shrink: 0;
 }
 
-.theme-custom-badge {
-  font-size: 10px;
-  font-weight: 500;
+.theme-delete-placeholder {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.theme-list-divider {
+  font-size: 11px;
+  font-weight: 600;
   color: var(--vscode-descriptionForeground, #888);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 10px;
+  margin-bottom: 2px;
+  padding-left: 4px;
+}
+
+.theme-delete-btn:hover {
+  background: rgba(255, 74, 74, 0.2);
+  color: #ff4a4a;
+  opacity: 1;
+}
+
+.theme-list-name-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.theme-list-name {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .theme-list-preview {
   display: flex;
   gap: 3px;
-  flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
+  flex-shrink: 0;
 }
 
 .theme-preview-swatch {
@@ -153,6 +208,8 @@
   border: 1px solid rgba(255, 255, 255, 0.15);
   flex-shrink: 0;
 }
+
+
 
 /* ── Custom editor ───────────────────────────────────────────────────────── */
 
