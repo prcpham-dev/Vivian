@@ -1,0 +1,192 @@
+/* graph.css — SVG graph nodes, links, info-panel, tooltip, loading */
+
+svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ── Links ───────────────────────────────────────────────────────────────── */
+
+.link {
+  stroke-opacity: 0.5;
+  stroke-width: 1.2;
+  fill: none;
+  pointer-events: none;
+}
+
+.link.highlighted {
+  stroke-opacity: 0.9;
+  stroke-width: 2.4;
+}
+
+.link.dimmed { stroke-opacity: 0.08; }
+
+/* ── Nodes ───────────────────────────────────────────────────────────────── */
+
+.node circle {
+  stroke: rgba(255, 255, 255, 0.15);
+  stroke-width: 1;
+  cursor: pointer;
+  transition: stroke-width 0.1s;
+}
+
+.node circle:hover {
+  stroke-width: 2.5;
+  stroke: white;
+}
+
+.node.selected circle { stroke: white; stroke-width: 2.5; }
+.node.dimmed circle   { opacity: 0.15; }
+.node.dimmed text     { opacity: 0.15; }
+
+.node text {
+  font-size: 10px;
+  fill: var(--vscode-editor-foreground, #d4d4d4);
+  pointer-events: none;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.node .label-text { font-size: 9px; dy: 0; }
+
+/* ── Info panel ──────────────────────────────────────────────────────────── */
+
+#info-panel {
+  width: 260px;
+  min-width: 260px;
+  background: var(--vscode-sideBar-background, #252526);
+  border-left: 1px solid var(--vscode-panel-border, #333);
+  overflow-y: auto;
+  padding: 12px;
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#info-panel.visible { display: flex; }
+
+#info-panel h3 {
+  font-size: 13px;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+#info-panel .badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+#info-panel .section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--vscode-descriptionForeground, #888);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+#info-panel .func-item {
+  padding: 3px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-family: var(--vscode-editor-font-family, monospace);
+  cursor: pointer;
+  background: var(--vscode-editor-background, #1e1e1e);
+  margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#info-panel .func-item:hover {
+  background: var(--vscode-list-hoverBackground, #2a2d2e);
+}
+
+#info-panel .rel-item {
+  font-size: 11px;
+  padding: 2px 4px;
+  margin-bottom: 2px;
+  word-break: break-all;
+  color: var(--vscode-textLink-foreground, #6daeff);
+  cursor: pointer;
+}
+
+#info-panel .rel-item:hover { text-decoration: underline; }
+
+#open-file-btn {
+  padding: 5px 10px;
+  background: var(--vscode-button-background, #0e639c);
+  color: var(--vscode-button-foreground, #fff);
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  text-align: center;
+}
+
+#open-file-btn:hover {
+  background: var(--vscode-button-hoverBackground, #1177bb);
+}
+
+#close-panel-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: var(--vscode-icon-foreground, #c5c5c5);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px 4px;
+}
+
+/* ── Tooltip ─────────────────────────────────────────────────────────────── */
+
+#tooltip {
+  position: fixed;
+  pointer-events: none;
+  background: var(--vscode-editorHoverWidget-background, #252526);
+  border: 1px solid var(--vscode-editorHoverWidget-border, #454545);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 11px;
+  max-width: 240px;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+
+#tooltip.visible { opacity: 1; }
+
+/* ── Loading spinner ─────────────────────────────────────────────────────── */
+
+#loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: var(--vscode-editor-background, #1e1e1e);
+  z-index: 10;
+}
+
+#loading .spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--vscode-progressBar-background, #0e70c0);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

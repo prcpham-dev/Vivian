@@ -1,9 +1,9 @@
-import './style.css'
+import './base.css'
 import { vscode } from './api'
-import { initGraph, renderGraph } from './graph'
-import { initChat } from './chat'
-import { initSettings } from './settings'
-import { initTheme } from './themes'
+import { initGraph, renderGraph } from './graph/graph'
+import { initChat } from './chat/chat'
+import { initSettings } from './settings/settings'
+import { initTheme } from './themes/themes'
 
 ;(function () {
   'use strict'

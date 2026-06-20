@@ -1,0 +1,113 @@
+/* settings.css — API key section and model selector */
+
+#api-key-section {
+  border-bottom: 1px solid var(--vscode-panel-border, #444);
+  padding: 8px 12px;
+  flex-shrink: 0;
+}
+
+#api-key-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+#api-key-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--vscode-descriptionForeground, #888);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+#api-key-toggle-btn {
+  background: none;
+  border: none;
+  color: var(--vscode-icon-foreground, #c5c5c5);
+  cursor: pointer;
+  font-size: 10px;
+  padding: 0 2px;
+  line-height: 1;
+}
+
+#api-key-form-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+#api-key-input {
+  flex: 1;
+  padding: 5px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--vscode-input-border, #555);
+  background: var(--vscode-input-background, #3c3c3c);
+  color: var(--vscode-input-foreground, #d4d4d4);
+  font-size: 11px;
+  font-family: var(--vscode-font-family, "Segoe UI", sans-serif);
+  outline: none;
+}
+
+#api-key-input:focus {
+  border-color: var(--vscode-focusBorder, #007acc);
+}
+
+#api-key-save-btn {
+  padding: 4px 10px;
+  background: var(--vscode-button-background, #0e639c);
+  color: var(--vscode-button-foreground, #fff);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+#api-key-save-btn:hover    { background: var(--vscode-button-hoverBackground, #1177bb); }
+#api-key-save-btn:disabled { opacity: 0.45; cursor: default; }
+
+#api-key-status {
+  font-size: 10px;
+  color: var(--vscode-descriptionForeground, #888);
+  min-height: 13px;
+  margin-bottom: 8px;
+}
+
+#model-select-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+#model-select {
+  flex: 1;
+  padding: 5px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--vscode-input-border, #555);
+  background: var(--vscode-input-background, #3c3c3c);
+  color: var(--vscode-input-foreground, #d4d4d4);
+  font-size: 11px;
+  font-family: var(--vscode-font-family, "Segoe UI", sans-serif);
+  outline: none;
+}
+
+#model-select:focus {
+  border-color: var(--vscode-focusBorder, #007acc);
+}
+
+#model-save-btn {
+  padding: 4px 10px;
+  background: var(--vscode-button-background, #0e639c);
+  color: var(--vscode-button-foreground, #fff);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+#model-save-btn:hover    { background: var(--vscode-button-hoverBackground, #1177bb); }
+#model-save-btn:disabled { opacity: 0.45; cursor: default; }

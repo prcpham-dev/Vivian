@@ -1,6 +1,7 @@
-import { GraphData, D3Node, D3Link } from './types'
-import { vscode } from './api'
-import themesData from './themes.json'
+import './graph.css'
+import { GraphData, D3Node, D3Link } from '../types'
+import { vscode } from '../api'
+import themesData from '../themes/themes.json'
 
 // ── Color keys & mutable theme colors ──────────────
 export const NODE_COLOR_KEYS = ['File', 'Folder', 'Class', 'Function', 'Method', 'Interface', 'Struct', 'Enum', 'Record'] as const
