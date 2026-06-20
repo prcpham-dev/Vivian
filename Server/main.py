@@ -19,7 +19,7 @@ from fastapi.responses import FileResponse
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", "service": "vivian-sidecar"}
 
 @app.get("/test-chat")
 def serve_chat_test():
