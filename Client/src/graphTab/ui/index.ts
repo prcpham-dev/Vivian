@@ -3,6 +3,7 @@ import { vscode } from './api'
 import { initGraph, renderGraph } from './graph'
 import { initChat } from './chat'
 import { initSettings } from './settings'
+import { initTheme } from './themes'
 
 ;(function () {
   'use strict'
@@ -17,6 +18,7 @@ import { initSettings } from './settings'
   })
 
   initGraph()
+  initTheme()
   initSettings()
   initChat()
 

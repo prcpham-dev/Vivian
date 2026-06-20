@@ -1,0 +1,22 @@
+{
+  "name": "My Theme Name",
+  "nodeColors": {
+    "File": "#4DD0E1",
+    "Folder": "#878ba4",
+    "Class": "#dbd82a",
+    "Function": "#00ff0d",
+    "Method": "#00ff99",
+    "Interface": "#7b61eb",
+    "Struct": "#ff3e3e",
+    "Enum": "#058c9e",
+    "Record": "#d220d5"
+  },
+  "linkColors": {
+    "IMPORTS": "#40C4FF",
+    "CONTAINS": "#00E676",
+    "CONTAINS_FOLDER_FILE": "#536DFE",
+    "CALLS": "#ffb007",
+    "CALLS_FN": "#FFEB3B",
+    "INHERITS": "#E040FB"
+  }
+}

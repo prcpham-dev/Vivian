@@ -20,6 +20,10 @@
     <div class="filter-group" id="node-filters">
       <span style="font-size:11px;color:var(--vscode-descriptionForeground,#888)">Nodes:</span>
     </div>
+    <button id="theme-btn" title="Graph color themes"
+      style="margin-left:8px;padding:4px 10px;background:var(--vscode-button-secondaryBackground,#3a3d41);color:var(--vscode-button-secondaryForeground,#fff);border:none;cursor:pointer;border-radius:3px;font-size:11px;">
+      Theme
+    </button>
     <button id="switch-to-vuln-btn" title="Switch to Vulnerability Manager"
       style="margin-left:8px;padding:4px 10px;background:var(--vscode-button-background,#0e639c);color:var(--vscode-button-foreground,#fff);border:none;cursor:pointer;border-radius:3px;font-size:11px;">
       Vuln Manager
@@ -34,6 +38,30 @@
         <span>Waiting for graph data…</span>
       </div>
       <svg id="svg"></svg>
+      <div id="theme-panel">
+        <div id="theme-panel-inner">
+          <div id="theme-panel-header">
+            <span>Graph Themes</span>
+            <button id="close-theme-btn" title="Close">&times;</button>
+          </div>
+          <div id="theme-tabs">
+            <button type="button" id="theme-tab-themes" class="theme-tab active">Themes</button>
+            <button type="button" id="theme-tab-custom" class="theme-tab">Custom</button>
+          </div>
+          <div id="theme-themes-view" class="theme-view">
+            <div id="theme-list"></div>
+          </div>
+          <div id="theme-custom-view" class="theme-view" style="display:none;">
+            <div id="theme-custom-colors"></div>
+            <div id="theme-save-section">
+              <label class="theme-save-label" for="theme-name-input">Theme name</label>
+              <input type="text" id="theme-name-input" placeholder="Theme 1" autocomplete="off">
+              <button type="button" id="save-theme-btn">Save Theme</button>
+              <div id="save-theme-status" class="theme-save-status"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <div id="info-panel" style="position:relative;">
       <button id="close-panel-btn" title="Close">×</button>

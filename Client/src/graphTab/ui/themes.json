@@ -1,0 +1,92 @@
+{
+  "themes": [
+    {
+      "name": "Default",
+      "nodeColors": {
+        "File": "#4DD0E1",
+        "Folder": "#878ba4",
+        "Class": "#dbd82a",
+        "Function": "#00ff0d",
+        "Method": "#00ff99",
+        "Interface": "#7b61eb",
+        "Struct": "#ff3e3e",
+        "Enum": "#058c9e",
+        "Record": "#d220d5"
+      },
+      "linkColors": {
+        "IMPORTS": "#40C4FF",
+        "CONTAINS": "#00E676",
+        "CONTAINS_FOLDER_FILE": "#536DFE",
+        "CALLS": "#ffb007",
+        "CALLS_FN": "#FFEB3B",
+        "INHERITS": "#E040FB"
+      }
+    },
+    {
+      "name": "Ocean",
+      "nodeColors": {
+        "File": "#26C6DA",
+        "Folder": "#5C6BC0",
+        "Class": "#29B6F6",
+        "Function": "#4DD0E1",
+        "Method": "#80DEEA",
+        "Interface": "#42A5F5",
+        "Struct": "#039BE5",
+        "Enum": "#00838F",
+        "Record": "#006064"
+      },
+      "linkColors": {
+        "IMPORTS": "#0288D1",
+        "CONTAINS": "#00ACC1",
+        "CONTAINS_FOLDER_FILE": "#3949AB",
+        "CALLS": "#26A69A",
+        "CALLS_FN": "#4DB6AC",
+        "INHERITS": "#7E57C2"
+      }
+    },
+    {
+      "name": "Sunset",
+      "nodeColors": {
+        "File": "#FF7043",
+        "Folder": "#8D6E63",
+        "Class": "#FFB74D",
+        "Function": "#FFCA28",
+        "Method": "#FFD54F",
+        "Interface": "#F06292",
+        "Struct": "#E57373",
+        "Enum": "#BA68C8",
+        "Record": "#9575CD"
+      },
+      "linkColors": {
+        "IMPORTS": "#FF8A65",
+        "CONTAINS": "#FFA726",
+        "CONTAINS_FOLDER_FILE": "#FF7043",
+        "CALLS": "#EF5350",
+        "CALLS_FN": "#FFEE58",
+        "INHERITS": "#AB47BC"
+      }
+    },
+    {
+      "name": "Monochrome",
+      "nodeColors": {
+        "File": "#B0BEC5",
+        "Folder": "#78909C",
+        "Class": "#90A4AE",
+        "Function": "#CFD8DC",
+        "Method": "#ECEFF1",
+        "Interface": "#607D8B",
+        "Struct": "#546E7A",
+        "Enum": "#455A64",
+        "Record": "#37474F"
+      },
+      "linkColors": {
+        "IMPORTS": "#90A4AE",
+        "CONTAINS": "#78909C",
+        "CONTAINS_FOLDER_FILE": "#607D8B",
+        "CALLS": "#B0BEC5",
+        "CALLS_FN": "#ECEFF1",
+        "INHERITS": "#546E7A"
+      }
+    }
+  ]
+}

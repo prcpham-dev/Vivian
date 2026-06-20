@@ -1,10 +1,13 @@
 import { GraphData, D3Node, D3Link } from './types'
 import { vscode } from './api'
 
-// ── Constants ────────────────────────────────────────
-const NODE_COLORS: Record<string, string> = {
-  Folder: '#878ba4ff',
+// ── Color keys & mutable theme colors ──────────────
+export const NODE_COLOR_KEYS = ['File', 'Folder', 'Class', 'Function', 'Method', 'Interface', 'Struct', 'Enum', 'Record'] as const
+export const LINK_COLOR_KEYS = ['IMPORTS', 'CONTAINS', 'CONTAINS_FOLDER_FILE', 'CALLS', 'CALLS_FN', 'INHERITS'] as const
+
+const DEFAULT_NODE_COLORS: Record<string, string> = {
   File: '#4DD0E1',
+  Folder: '#878ba4ff',
   Class: '#dbd82aff',
   Function: '#00ff0dff',
   Method: '#00ff99ff',
@@ -14,7 +17,7 @@ const NODE_COLORS: Record<string, string> = {
   Record: '#d220d5ff',
 }
 
-const LINK_COLORS: Record<string, string> = {
+const DEFAULT_LINK_COLORS: Record<string, string> = {
   IMPORTS: '#40C4FF',
   CONTAINS: '#00E676',
   CONTAINS_FOLDER_FILE: '#536DFE',
@@ -23,6 +26,66 @@ const LINK_COLORS: Record<string, string> = {
   INHERITS: '#E040FB',
 }
 
+let nodeColors: Record<string, string> = { ...DEFAULT_NODE_COLORS }
+let linkColors: Record<string, string> = { ...DEFAULT_LINK_COLORS }
+
+export function getNodeColors() {
+  return { ...nodeColors }
+}
+
+export function getLinkColors() {
+  return { ...linkColors }
+}
+
+export function applyGraphTheme(nodes: Record<string, string>, links: Record<string, string>) {
+  nodeColors = { ...DEFAULT_NODE_COLORS, ...nodes }
+  linkColors = { ...DEFAULT_LINK_COLORS, ...links }
+  refreshGraphColors()
+}
+
+function refreshGraphColors() {
+  if (!arrowG || !linksG || !nodesG) return
+
+  Object.entries(linkColors).forEach(([type, color]) => {
+    arrowG.select(`#arrow-${type} path`)
+      .attr('fill', color)
+      .attr('opacity', 0.6)
+  })
+
+  linksG.selectAll('.link')
+    .attr('stroke', (d: any) => linkColors[effectiveLinkType(d)] || '#aaa')
+
+  nodesG.selectAll('.node circle')
+    .attr('fill', (d: any) => nodeColors[d.label] || '#aaa')
+
+  updateFilterChipColors()
+
+  if (selectedNode) showInfoPanel(selectedNode)
+}
+
+function updateFilterChipColors() {
+  const relContainer = document.getElementById('rel-filters')
+  const nodeContainer = document.getElementById('node-filters')
+  if (!relContainer || !nodeContainer) return
+
+  relContainer.querySelectorAll('.chip').forEach(el => {
+    const chip = el as HTMLElement
+    const type = chip.dataset.type!
+    const color = linkColors[type] || '#aaa'
+    chip.style.color = color
+    const dot = chip.querySelector('.chip-dot') as HTMLElement
+    if (dot) dot.style.background = color
+  })
+
+  nodeContainer.querySelectorAll('.chip').forEach(el => {
+    const chip = el as HTMLElement
+    const type = chip.dataset.type!
+    const color = nodeColors[type] || '#aaa'
+    chip.style.color = color
+    const dot = chip.querySelector('.chip-dot') as HTMLElement
+    if (dot) dot.style.background = color
+  })
+}
 // Returns the effective link type used for colouring/markers.
 // Sub-types let CONTAINS and CALLS edges be styled by their connected node kinds.
 function effectiveLinkType(d: any): string {
@@ -68,7 +131,7 @@ export function initGraph() {
   arrowG = svg.append('defs')
 
   // Arrow marker per relationship type
-  Object.entries(LINK_COLORS).forEach(([type, color]) => {
+  Object.entries(linkColors).forEach(([type, color]) => {
     arrowG.append('marker')
       .attr('id', 'arrow-' + type)
       .attr('viewBox', '0 -4 8 8')
@@ -184,7 +247,7 @@ export function renderGraph(data: GraphData) {
     .data(links, (d: any) => d.id)
     .join('line')
     .attr('class', (d: any) => 'link ' + d.type)
-    .attr('stroke', (d: any) => LINK_COLORS[effectiveLinkType(d)] || '#aaa')
+    .attr('stroke', (d: any) => linkColors[effectiveLinkType(d)] || '#aaa')
     .attr('marker-end', (d: any) => `url(#arrow-${effectiveLinkType(d)})`)
 
   // ── Nodes ────────────────────────────
@@ -201,7 +264,7 @@ export function renderGraph(data: GraphData) {
     .on('mousemove', moveTooltip)
     .on('mouseout', hideTooltip)
 
-  node.append('circle').attr('r', (d: any) => d.r).attr('fill', (d: any) => NODE_COLORS[d.label] || '#aaa')
+  node.append('circle').attr('r', (d: any) => d.r).attr('fill', (d: any) => nodeColors[d.label] || '#aaa')
   node.append('text').attr('dy', (d: any) => d.r + 10).attr('class', 'label-text').text((d: any) => truncate(d.name, 18))
 
   simulation.on('tick', () => {
@@ -234,8 +297,8 @@ function buildFilterChips() {
   relTypes.forEach(type => {
     const chip = document.createElement('span')
     chip.className = 'chip active'
-    chip.style.color = LINK_COLORS[type] || '#aaa'
-    chip.innerHTML = `<span class="chip-dot" style="background:${LINK_COLORS[type] || '#aaa'}"></span>${type}`
+    chip.style.color = linkColors[type] || '#aaa'
+    chip.innerHTML = `<span class="chip-dot" style="background:${linkColors[type] || '#aaa'}"></span>${type}`
     chip.dataset.type = type
     chip.addEventListener('click', () => {
       if (activeRelTypes.has(type)) activeRelTypes.delete(type)
@@ -251,8 +314,8 @@ function buildFilterChips() {
   nodeTypes.forEach(type => {
     const chip = document.createElement('span')
     chip.className = 'chip active'
-    chip.style.color = NODE_COLORS[type] || '#aaa'
-    chip.innerHTML = `<span class="chip-dot" style="background:${NODE_COLORS[type] || '#aaa'}"></span>${type}`
+    chip.style.color = nodeColors[type] || '#aaa'
+    chip.innerHTML = `<span class="chip-dot" style="background:${nodeColors[type] || '#aaa'}"></span>${type}`
     chip.dataset.type = type
     chip.addEventListener('click', () => {
       if (activeNodeTypes.has(type)) activeNodeTypes.delete(type)
@@ -365,8 +428,8 @@ function showInfoPanel(d: any) {
   document.getElementById('info-name')!.textContent = d.name
   const badge = document.getElementById('info-badge')!
   badge.textContent = d.label
-  badge.style.background = (NODE_COLORS[d.label] || '#888') + '33'
-  badge.style.color = NODE_COLORS[d.label] || '#888'
+  badge.style.background = (nodeColors[d.label] || '#888') + '33'
+  badge.style.color = nodeColors[d.label] || '#888'
 
   const pathEl = document.getElementById('info-path')!
   pathEl.textContent = d.filePath || d.id
