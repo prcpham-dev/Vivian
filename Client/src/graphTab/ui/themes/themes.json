@@ -1,0 +1,224 @@
+{
+  "themes": [
+    {
+      "name": "Default",
+      "nodeColors": {
+        "File": "#4DD0E1",
+        "Folder": "#878ba4",
+        "Class": "#dbd82a",
+        "Function": "#00ff0d",
+        "Method": "#00ff99",
+        "Interface": "#7b61eb",
+        "Struct": "#ff3e3e",
+        "Enum": "#058c9e",
+        "Record": "#d220d5"
+      },
+      "linkColors": {
+        "IMPORTS": "#40C4FF",
+        "CONTAINS": "#00E676",
+        "CONTAINS_FOLDER_FILE": "#536DFE",
+        "CALLS": "#ffb007",
+        "CALLS_FN": "#FFEB3B",
+        "INHERITS": "#E040FB"
+      }
+    },
+    {
+      "name": "Ocean Blue",
+      "nodeColors": {
+        "File": "#26C6DA",
+        "Folder": "#5C6BC0",
+        "Class": "#29B6F6",
+        "Function": "#4DD0E1",
+        "Method": "#80DEEA",
+        "Interface": "#42A5F5",
+        "Struct": "#039BE5",
+        "Enum": "#00838F",
+        "Record": "#006064"
+      },
+      "linkColors": {
+        "IMPORTS": "#0288D1",
+        "CONTAINS": "#00ACC1",
+        "CONTAINS_FOLDER_FILE": "#3949AB",
+        "CALLS": "#26A69A",
+        "CALLS_FN": "#4DB6AC",
+        "INHERITS": "#7E57C2"
+      }
+    },
+    {
+      "name": "Golden Hour",
+      "nodeColors": {
+        "File": "#FF7043",
+        "Folder": "#8D6E63",
+        "Class": "#FFB74D",
+        "Function": "#FFCA28",
+        "Method": "#FFD54F",
+        "Interface": "#F06292",
+        "Struct": "#E57373",
+        "Enum": "#BA68C8",
+        "Record": "#9575CD"
+      },
+      "linkColors": {
+        "IMPORTS": "#FF8A65",
+        "CONTAINS": "#FFA726",
+        "CONTAINS_FOLDER_FILE": "#FF7043",
+        "CALLS": "#EF5350",
+        "CALLS_FN": "#FFEE58",
+        "INHERITS": "#AB47BC"
+      }
+    },
+    {
+      "name": "1940s Cinema",
+      "nodeColors": {
+        "File": "#A89F91",
+        "Folder": "#4A423A",
+        "Class": "#61574C",
+        "Function": "#C7BEB1",
+        "Method": "#DED6C8",
+        "Interface": "#7A7063",
+        "Struct": "#5C5349",
+        "Enum": "#4A423A",
+        "Record": "#38312A"
+      },
+      "linkColors": {
+        "IMPORTS": "#FFFDF9",
+        "CONTAINS": "#F4EFE3",
+        "CONTAINS_FOLDER_FILE": "#E2DACB",
+        "CALLS": "#FFF8E7",
+        "CALLS_FN": "#FAF0D7",
+        "INHERITS": "#B5A997"
+      }
+    },
+    {
+      "name": "Spirit Blossom",
+      "nodeColors": {
+        "File": "#00F0FF",
+        "Folder": "#4D96FF",
+        "Class": "#FF007F",
+        "Interface": "#FF6EA7",
+        "Function": "#9D4EDD",
+        "Method": "#E0AAFF",
+        "Struct": "#FF5C00",
+        "Enum": "#BE00FF",
+        "Record": "#7000FF"
+      },
+      "linkColors": {
+        "IMPORTS": "#38B6FF",
+        "CONTAINS": "#004AFF",
+        "CONTAINS_FOLDER_FILE": "#00D2FF",
+        "CALLS": "#FF00C1",
+        "CALLS_FN": "#B800FF",
+        "INHERITS": "#E0A9FC"
+      }
+    },
+    {
+      "name": "Royal",
+      "nodeColors": {
+        "Folder": "#2750C0",
+        "File": "#3B82F6",
+        "Class": "#D97706",
+        "Interface": "#F59E0B",
+        "Struct": "#B45309",
+        "Enum": "#FBBF24",
+        "Record": "#D9A74A",
+        "Function": "#00D2FF",
+        "Method": "#60A5FA"
+      },
+      "linkColors": {
+        "IMPORTS": "#2563EB",
+        "CONTAINS": "#1D4ED8",
+        "CONTAINS_FOLDER_FILE": "#1E40AF",
+        "CALLS": "#F59E0B",
+        "CALLS_FN": "#FFF500",
+        "INHERITS": "#EAB308"
+      }
+    },
+    {
+      "name": "Neon Cyberpunk",
+      "nodeColors": {
+        "Folder": "#81A0F5",
+        "File": "#F0E2D0",
+        "Class": "#4A31FF",
+        "Interface": "#F85267",
+        "Struct": "#B25084",
+        "Enum": "#7B61EB",
+        "Record": "#D8499D",
+        "Function": "#584582",
+        "Method": "#4A31FF"
+      },
+      "linkColors": {
+        "IMPORTS": "#F85267",
+        "CONTAINS": "#4A31FF",
+        "CONTAINS_FOLDER_FILE": "#E5296E",
+        "CALLS": "#81A0F5",
+        "CALLS_FN": "#BB4981",
+        "INHERITS": "#A43068"
+      }
+    },
+    {
+      "name": "Haku",
+      "nodeColors": {
+        "Folder": "#435594",
+        "File": "#D6E4FA",
+        "Class": "#45B3BA",
+        "Interface": "#79CAD2",
+        "Struct": "#A4B1E6",
+        "Function": "#EBF2FA",
+        "Method": "#68658F",
+        "Enum": "#4F567A",
+        "Record": "#D6E4FA"
+      },
+      "linkColors": {
+        "IMPORTS": "#45B3BA",
+        "CONTAINS": "#435594",
+        "CONTAINS_FOLDER_FILE": "#45B3BA",
+        "CALLS": "#79CAD2",
+        "CALLS_FN": "#45B3BA",
+        "INHERITS": "#A4B1E6"
+      }
+    },
+    {
+      "name": "Chihiro",
+      "nodeColors": {
+        "Folder": "#4BB368",
+        "File": "#EBE8D9",
+        "Class": "#F26B8A",
+        "Interface": "#FA9BB2",
+        "Struct": "#F2CE6B",
+        "Function": "#FDFBF7",
+        "Method": "#E58296",
+        "Enum": "#5A493A",
+        "Record": "#EBE8D9"
+      },
+      "linkColors": {
+        "IMPORTS": "#F26B8A",
+        "CONTAINS": "#F26B8A",
+        "CONTAINS_FOLDER_FILE": "#2E6E40",
+        "CALLS": "#F2CE6B",
+        "CALLS_FN": "#FA9BB2",
+        "INHERITS": "#EBE8D9"
+      }
+    },
+    {
+      "name": "Ho Ho Ho",
+      "nodeColors": {
+        "Folder": "#D4AF37",
+        "File": "#A8201A",
+        "Class": "#A8201A",
+        "Interface": "#164A2B",
+        "Struct": "#2A7B4C",
+        "Function": "#DC4238",
+        "Method": "#02E361",
+        "Enum": "#5C4033",
+        "Record": "#F4F7F5"
+      },
+      "linkColors": {
+        "IMPORTS": "#A8201A",
+        "CONTAINS": "#164A2B",
+        "CONTAINS_FOLDER_FILE": "#2A7B4C",
+        "CALLS": "#F3E5AB",
+        "CALLS_FN": "#D4AF37",
+        "INHERITS": "#F4F7F5"
+      }
+    }
+  ]
+}

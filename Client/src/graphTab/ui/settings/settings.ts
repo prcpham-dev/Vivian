@@ -1,4 +1,5 @@
-import { API_BASE, fetchJson, vscode } from './api'
+import './settings.css'
+import { API_BASE, fetchJson, vscode } from '../api'
 
 export function initSettings() {
   const apiKeySection   = document.getElementById('api-key-section')!
@@ -28,7 +29,7 @@ export function initSettings() {
       } else {
         apiKeyStatus.textContent = 'No API key! Enter one to enable chat'
       }
-      
+
       const modelData = await fetchJson('/settings/model')
       if (modelData.model) {
         modelSelect.value = modelData.model

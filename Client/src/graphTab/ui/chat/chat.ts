@@ -1,5 +1,6 @@
-import { WS_URL, API_BASE } from './api'
-import { getSelectedNode } from './graph'
+import './chat.css'
+import { WS_URL } from '../api'
+import { getSelectedNode } from '../graph/graph'
 
 export function initChat() {
   const chatBtn      = document.getElementById('chat-btn')!
@@ -12,14 +13,12 @@ export function initChat() {
 
   chatBtn.addEventListener('click', () => chatDrawer.classList.toggle('open'))
   closeChatBtn.addEventListener('click', () => chatDrawer.classList.remove('open'))
-  
+
   if (clearChatBtn) {
     clearChatBtn.addEventListener('click', () => {
       chatMessages.innerHTML = ''
     })
   }
-
-
 
   let ws: WebSocket | null = null
   let wsReady = false
@@ -108,12 +107,12 @@ export function initChat() {
     chatInput.value = ''
     setSendEnabled(false)
     currentAiMsg = null
-    
+
     const selectedNode = getSelectedNode()
     const node = selectedNode
       ? { id: selectedNode.id, label: selectedNode.label }
       : null
-      
+
     ws.send(JSON.stringify({
       event: 'chat',
       workspace_root: WORKSPACE_ROOT,
