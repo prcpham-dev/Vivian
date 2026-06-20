@@ -2,6 +2,7 @@ import * as vscode from 'vscode'
 import * as fs from 'fs'
 import { KnowledgeGraph } from '../types'
 import { log } from '../utils/logger'
+import { getActivePort } from '../services/sidecarManager'
 
 function getNonce(): string {
   let text = ''
@@ -54,7 +55,7 @@ export class GraphPanel {
     this.panel.webview.postMessage({ command: 'loadGraph', graph })
   }
 
-  private onMessage(msg: { command: string; [key: string]: unknown }): void {
+  private onMessage(msg: { command: string;[key: string]: unknown }): void {
     if (msg.command === 'webviewReady') {
       this.update(this.latestGraph)
     } else if (msg.command === 'openFile' && typeof msg.filePath === 'string') {
@@ -96,12 +97,13 @@ export class GraphPanel {
       css = fs.readFileSync(cssPath, 'utf8')
     } catch { /* graceful fallback */ }
 
+    const port = getActivePort()
     return /* html */ `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}' ${webview.cspSource} https://d3js.org; style-src 'unsafe-inline'; connect-src ws://localhost:8765 http://localhost:8765;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}' ${webview.cspSource} https://d3js.org; style-src 'unsafe-inline'; connect-src ws://localhost:${port} http://localhost:${port};">
   <title>Vivian: Code Graph</title>
   <style>${css}</style>
 </head>
@@ -112,14 +114,14 @@ export class GraphPanel {
     <input type="text" id="search" placeholder="Search nodes…" autocomplete="off">
     <button id="clear-search-btn" title="Clear search">Clear</button>
   </div>
+  <button id="theme-btn" title="Graph color themes" class="toolbar-btn">Theme</button>
+  <button id="switch-to-vuln-btn" title="Switch to Vulnerability Manager" class="toolbar-btn">Vuln Manager</button>
   <div class="filter-group" id="rel-filters">
-    <span style="font-size:11px;color:var(--vscode-descriptionForeground,#888)">Show:</span>
+    <span style="font-size:11px;color:var(--vscode-descriptionForeground,#888)">Relationship:</span>
   </div>
   <div class="filter-group" id="node-filters">
     <span style="font-size:11px;color:var(--vscode-descriptionForeground,#888)">Nodes:</span>
   </div>
-  <button id="theme-btn" title="Graph color themes" style="margin-left:8px;padding:4px 10px;background:var(--vscode-button-secondaryBackground,#3a3d41);color:var(--vscode-button-secondaryForeground,#fff);border:none;cursor:pointer;border-radius:3px;font-size:11px;">Theme</button>
-  <button id="switch-to-vuln-btn" title="Switch to Vulnerability Manager" style="margin-left:8px;padding:4px 10px;background:var(--vscode-button-background,#0e639c);color:var(--vscode-button-foreground,#fff);border:none;cursor:pointer;border-radius:3px;font-size:11px;">Vuln Manager</button>
   <span id="node-count"></span>
 </div>
 
@@ -215,7 +217,7 @@ export class GraphPanel {
 </div>
 
 <script nonce="${nonce}" src="https://d3js.org/d3.v7.min.js"></script>
-<script nonce="${nonce}">window.WORKSPACE_ROOT = ${JSON.stringify(this.workspaceRoot)};</script>
+<script nonce="${nonce}">window.WORKSPACE_ROOT = ${JSON.stringify(this.workspaceRoot)};window.SIDECAR_PORT = ${port};</script>
 <script nonce="${nonce}" src="${scriptUri}"></script>
 </body>
 </html>`
