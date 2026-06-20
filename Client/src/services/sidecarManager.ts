@@ -114,9 +114,12 @@ export async function startSidecar(extensionPath: string): Promise<void> {
   try {
     const res = await fetch(preferredHealthUrl)
     if (res.ok) {
-      activePort = preferredPort
-      log(`Sidecar already running on port ${preferredPort}, reusing it.`)
-      return
+      const data = await res.json() as { status?: string; service?: string }
+      if (data?.service === 'vivian-sidecar') {
+        activePort = preferredPort
+        log(`Sidecar already running on port ${preferredPort}, reusing it.`)
+        return
+      }
     }
   } catch {
     // nothing on that port yet — proceed to spawn
@@ -184,8 +187,11 @@ async function waitForHealth(
     try {
       const res = await fetch(healthUrl)
       if (res.ok) {
-        log('Sidecar is healthy')
-        return
+        const data = await res.json() as { status?: string; service?: string }
+        if (data?.service === 'vivian-sidecar') {
+          log('Sidecar is healthy')
+          return
+        }
       }
     } catch {
       // not up yet
