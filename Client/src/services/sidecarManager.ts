@@ -2,9 +2,35 @@ import * as vscode from 'vscode'
 import * as cp from 'child_process'
 import * as path from 'path'
 import * as fs from 'fs'
+import * as net from 'net'
 import { log } from '../utils/logger'
 
 let sidecarProcess: cp.ChildProcess | undefined
+let activePort: number | undefined
+
+/** Returns the port the sidecar is currently running on. */
+export function getActivePort(): number {
+  return activePort ?? 8765
+}
+
+/** Find an available TCP port, preferring `preferred` but falling back to any free one. */
+function findFreePort(preferred: number): Promise<number> {
+  return new Promise((resolve) => {
+    const server = net.createServer()
+    server.listen(preferred, '127.0.0.1', () => {
+      const addr = server.address() as net.AddressInfo
+      server.close(() => resolve(addr.port))
+    })
+    server.on('error', () => {
+      // preferred port busy — let OS assign a free one
+      const fallback = net.createServer()
+      fallback.listen(0, '127.0.0.1', () => {
+        const addr = fallback.address() as net.AddressInfo
+        fallback.close(() => resolve(addr.port))
+      })
+    })
+  })
+}
 
 const PYTHON_CANDIDATES = ['python', 'python3', 'py']
 
@@ -80,8 +106,25 @@ export async function startSidecar(extensionPath: string): Promise<void> {
   if (sidecarProcess) return
 
   const config = vscode.workspace.getConfiguration('vivian')
-  const port: number = config.get('sidecarPort') ?? 8765
+  const preferredPort: number = config.get('sidecarPort') ?? 8765
   const serverPath = path.join(extensionPath, 'Server')
+
+  // If something is already listening and healthy on the preferred port, reuse it.
+  const preferredHealthUrl = `http://127.0.0.1:${preferredPort}/health`
+  try {
+    const res = await fetch(preferredHealthUrl)
+    if (res.ok) {
+      activePort = preferredPort
+      log(`Sidecar already running on port ${preferredPort}, reusing it.`)
+      return
+    }
+  } catch {
+    // nothing on that port yet — proceed to spawn
+  }
+
+  // Pick a free port (preferred first, OS-assigned fallback)
+  const port = await findFreePort(preferredPort)
+  activePort = port
   const healthUrl = `http://127.0.0.1:${port}/health`
 
   log(`Starting sidecar on port ${port} from ${serverPath}`)
@@ -113,6 +156,14 @@ export async function startSidecar(extensionPath: string): Promise<void> {
   await waitForHealth(healthUrl, () => {
     if (exited) {
       const tail = stderrLines.slice(-8).join('\n')
+      const portInUse = tail.includes('10048') || tail.includes('address already in use')
+      if (portInUse) {
+        throw new Error(
+          `Port ${port} is already in use by another process.\n\n` +
+          `Either close the other process or change the port in VS Code settings:\n` +
+          `  vivian.sidecarPort (currently ${port})`
+        )
+      }
       throw new Error(
         `Sidecar process exited (code ${exitCode}) before health check passed.\n\n` +
         (tail ? `Last output:\n${tail}\n\n` : '') +

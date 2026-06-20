@@ -1,30 +1,15 @@
 import { GraphData, D3Node, D3Link } from './types'
 import { vscode } from './api'
+import themesData from './themes.json'
 
 // ── Color keys & mutable theme colors ──────────────
 export const NODE_COLOR_KEYS = ['File', 'Folder', 'Class', 'Function', 'Method', 'Interface', 'Struct', 'Enum', 'Record'] as const
 export const LINK_COLOR_KEYS = ['IMPORTS', 'CONTAINS', 'CONTAINS_FOLDER_FILE', 'CALLS', 'CALLS_FN', 'INHERITS'] as const
 
-const DEFAULT_NODE_COLORS: Record<string, string> = {
-  File: '#4DD0E1',
-  Folder: '#878ba4ff',
-  Class: '#dbd82aff',
-  Function: '#00ff0dff',
-  Method: '#00ff99ff',
-  Interface: '#7b61ebff',
-  Struct: '#ff3e3eff',
-  Enum: '#058c9eff',
-  Record: '#d220d5ff',
-}
-
-const DEFAULT_LINK_COLORS: Record<string, string> = {
-  IMPORTS: '#40C4FF',
-  CONTAINS: '#00E676',
-  CONTAINS_FOLDER_FILE: '#536DFE',
-  CALLS: '#ffb007',
-  CALLS_FN: '#FFEB3B',
-  INHERITS: '#E040FB',
-}
+// Load defaults from the first theme in themes.json ("Default")
+const _defaultTheme = themesData.themes[0]
+const DEFAULT_NODE_COLORS: Record<string, string> = { ..._defaultTheme.nodeColors }
+const DEFAULT_LINK_COLORS: Record<string, string> = { ..._defaultTheme.linkColors }
 
 let nodeColors: Record<string, string> = { ...DEFAULT_NODE_COLORS }
 let linkColors: Record<string, string> = { ...DEFAULT_LINK_COLORS }
