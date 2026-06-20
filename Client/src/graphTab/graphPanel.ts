@@ -58,6 +58,8 @@ export class GraphPanel {
   private onMessage(msg: { command: string;[key: string]: unknown }): void {
     if (msg.command === 'webviewReady') {
       this.update(this.latestGraph)
+    } else if (msg.command === 'saveThemeState') {
+      this.context.globalState.update('vivian.themeState', msg.state)
     } else if (msg.command === 'openFile' && typeof msg.filePath === 'string') {
       const folders = vscode.workspace.workspaceFolders
       if (folders?.length) {
@@ -217,7 +219,7 @@ export class GraphPanel {
 </div>
 
 <script nonce="${nonce}" src="https://d3js.org/d3.v7.min.js"></script>
-<script nonce="${nonce}">window.WORKSPACE_ROOT = ${JSON.stringify(this.workspaceRoot)};window.SIDECAR_PORT = ${port};</script>
+<script nonce="${nonce}">window.WORKSPACE_ROOT = ${JSON.stringify(this.workspaceRoot)};window.SIDECAR_PORT = ${port};window.THEME_STATE = ${JSON.stringify(this.context.globalState.get('vivian.themeState') || null)};</script>
 <script nonce="${nonce}" src="${scriptUri}"></script>
 </body>
 </html>`

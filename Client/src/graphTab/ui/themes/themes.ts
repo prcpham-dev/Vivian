@@ -230,7 +230,8 @@ function closeColorPicker() {
 // ─── Theme persistence ────────────────────────────────────────────────────────
 
 function loadPersistedThemes() {
-  const state = vscode.getState() as WebviewThemeState | null
+  const extState = (window as any).THEME_STATE as WebviewThemeState | null
+  const state = extState || (vscode.getState() as WebviewThemeState | null)
   if (state?.userThemes?.length) {
     allThemes = [...builtInThemes, ...state.userThemes.map(t => ({ ...t, custom: true }))]
   }
@@ -241,16 +242,17 @@ function loadPersistedThemes() {
 }
 
 function persistUserThemes() {
-  const state = (vscode.getState() as WebviewThemeState | null) ?? {}
-  vscode.setState({
-    ...state,
+  const state = {
+    ...((vscode.getState() as WebviewThemeState | null) ?? {}),
     userThemes: allThemes.filter(t => t.custom).map(t => ({
       name: t.name,
       nodeColors: { ...t.nodeColors },
       linkColors: { ...t.linkColors },
     })),
     activeThemeName,
-  })
+  }
+  vscode.setState(state)
+  vscode.postMessage({ command: 'saveThemeState', state })
 }
 
 function getAllThemes(): GraphTheme[] { return allThemes }

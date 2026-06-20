@@ -143,7 +143,7 @@
         "Enum": "#7B61EB",
         "Record": "#D8499D",
         "Function": "#584582",
-        "Method": "#4A31FF"
+        "Method": "#e9425e"
       },
       "linkColors": {
         "IMPORTS": "#F85267",
