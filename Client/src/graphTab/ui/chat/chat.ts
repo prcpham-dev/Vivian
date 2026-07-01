@@ -35,12 +35,12 @@ export function initChat() {
     const div = document.createElement('div')
     div.className = 'chat-msg ai'
     div.innerHTML = `
-      <div style="display:flex;flex-direction:column;gap:12px;align-items:start;">
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:start;">
         <i style="color:var(--vscode-descriptionForeground);">Vivian's Built-in AI is currently disabled.</i>
         
-        <div style="background:var(--vscode-editor-background);padding:12px;border-radius:4px;border:1px solid var(--vscode-panel-border);width:100%;">
-          <h4 style="margin:0 0 8px 0;color:var(--vscode-foreground);font-size:12px;">How to connect to Vivian via MCP</h4>
-          <ol style="margin:0;padding-left:16px;color:var(--vscode-descriptionForeground);font-size:11px;line-height:1.6;">
+        <div style="background:var(--vscode-editor-background);padding:8px;border-radius:4px;border:1px solid var(--vscode-panel-border);width:100%;">
+          <h4 style="margin:0;color:var(--vscode-foreground);font-size:12px;">How to connect to Vivian via MCP</h4>
+          <ol style="margin:4px 0 0 0;padding-left:18px;color:var(--vscode-descriptionForeground);font-size:11px;line-height:1.2;">
             <li>Press <code>Cmd+Shift+P</code> (or <code>Ctrl+Shift+P</code>)</li>
             <li>Run <b>Vivian: Copy MCP Config</b></li>
             <li>Paste the copied JSON into your agent's MCP settings (e.g., Antigravity or Cursor).</li>
