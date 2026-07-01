@@ -19,9 +19,37 @@ export function activate(context: vscode.ExtensionContext): void {
     statusBarItem,
     vscode.commands.registerCommand('vivian.openGraph', () => openGraph(context, false)),
     vscode.commands.registerCommand('vivian.openVulnManager', () => {
-      VulnManagerPanel.create(context)
-    })
+      const config = vscode.workspace.getConfiguration('vivian')
+      if (config.get('enableInternalAgents')) {
+        VulnManagerPanel.create(context)
+      } else {
+        vscode.window.showInformationMessage('Please use Antigravity or Cline to run vulnerability scans. They have full access to Vivian\'s knowledge graph via MCP!')
+      }
+    }),
+    vscode.commands.registerCommand('vivian.copyMcpConfig', () => copyMcpConfig(context))
   )
+}
+
+async function copyMcpConfig(context: vscode.ExtensionContext): Promise<void> {
+  const isWindows = process.platform === 'win32'
+  const pythonPath = isWindows
+    ? path.join(context.extensionPath, 'Server', 'venv', 'Scripts', 'python.exe')
+    : path.join(context.extensionPath, 'Server', 'venv', 'bin', 'python')
+  
+  const scriptPath = path.join(context.extensionPath, 'Server', 'main.py')
+  
+  const config = {
+    mcpServers: {
+      "vivian-graph": {
+        command: pythonPath,
+        args: [scriptPath, "--mcp"],
+        env: {}
+      }
+    }
+  }
+
+  await vscode.env.clipboard.writeText(JSON.stringify(config, null, 2))
+  vscode.window.showInformationMessage('Vivian: MCP Configuration copied to clipboard!')
 }
 
 async function openGraph(context: vscode.ExtensionContext, forceRebuild: boolean): Promise<void> {

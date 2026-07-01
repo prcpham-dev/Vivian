@@ -3,16 +3,31 @@ import { WS_URL } from '../api'
 import { getSelectedNode } from '../graph/graph'
 
 export function initChat() {
-  const chatBtn      = document.getElementById('chat-btn')!
-  const chatDrawer   = document.getElementById('chat-drawer')!
+  const chatBtn = document.getElementById('chat-btn')!
+
+  const chatDrawer = document.getElementById('chat-drawer')!
   const closeChatBtn = document.getElementById('close-chat-btn')!
   const clearChatBtn = document.getElementById('clear-chat-btn')!
   const chatMessages = document.getElementById('chat-messages')!
-  const chatInput    = document.getElementById('chat-input') as HTMLTextAreaElement
-  const chatSendBtn  = document.getElementById('chat-send-btn') as HTMLButtonElement
+  const chatInput = document.getElementById('chat-input') as HTMLTextAreaElement
+  const chatSendBtn = document.getElementById('chat-send-btn') as HTMLButtonElement
+  const chatSettingsBtn = document.getElementById('chat-settings-btn')!
+  const chatInputArea = document.getElementById('chat-input-area')!
 
   chatBtn.addEventListener('click', () => chatDrawer.classList.toggle('open'))
   closeChatBtn.addEventListener('click', () => chatDrawer.classList.remove('open'))
+
+  if (!(window as any).ENABLE_INTERNAL_AGENTS) {
+    if (chatSettingsBtn) chatSettingsBtn.style.display = 'none'
+    if (chatInputArea) chatInputArea.style.display = 'none'
+    if (clearChatBtn) clearChatBtn.style.display = 'none'
+    
+    const div = document.createElement('div')
+    div.className = 'chat-msg ai'
+    div.innerHTML = '<i>Internal agents are disabled. Please use your connected external agent (e.g., Antigravity or Cline) to ask questions and interact with the codebase.</i>'
+    chatMessages.appendChild(div)
+    return
+  }
 
   if (clearChatBtn) {
     clearChatBtn.addEventListener('click', () => {

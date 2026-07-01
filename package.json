@@ -2,7 +2,7 @@
   "name": "vivian-vision",
   "displayName": "Vivian - Code vision",
   "description": "Code analysis tool designed to visualize the codebase as an interactive graph.",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "publisher": "prcpham",
   "repository": {
     "type": "git",
@@ -27,6 +27,10 @@
         "icon": "$(telescope)"
       },
       {
+        "command": "vivian.copyMcpConfig",
+        "title": "Vivian: Copy MCP Config"
+      },
+      {
         "command": "vivian.openVulnManager",
         "title": "Vivian: Open Vulnerability Manager"
       }
@@ -37,7 +41,23 @@
           "command": "vivian.openGraph",
           "group": "navigation"
         }
+      ],
+      "commandPalette": [
+        {
+          "command": "vivian.openVulnManager",
+          "when": "config.vivian.enableInternalAgents"
+        }
       ]
+    },
+    "configuration": {
+      "title": "Vivian Settings",
+      "properties": {
+        "vivian.enableInternalAgents": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable internal agents (Chat and Vulnerability Manager). When disabled, these UI components are hidden. Recommended to disable if using Antigravity or Cline."
+        }
+      }
     }
   },
   "scripts": {
