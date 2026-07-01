@@ -52,8 +52,9 @@ button {
 
 .file-list {
   flex: 1;
-  overflow-y: auto;
-  padding: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .file-item {

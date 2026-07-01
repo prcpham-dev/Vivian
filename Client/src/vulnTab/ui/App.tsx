@@ -267,25 +267,28 @@ export default function App() {
         
         <div className="file-list" style={{ display: 'flex', flexDirection: 'column' }}>
           {activeTab === 'files' && (
-             <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-               <div className="tree-container" style={{ flex: 1, overflowY: 'auto' }}>
+             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+               <div className="tree-container" style={{ flex: 1, overflowY: 'auto', padding: '8px' }}>
                  {files.length === 0 ? <div className="loading" style={{padding: '8px', fontSize: '11px', color: '#888'}}>Loading files...</div> : (
                    <TreeNode node={tree} level={0} onCheck={toggleCheck} checkedFiles={checkedFiles} scannedFiles={scannedFiles} onFileClick={handleFileClick} activeFile={activeFile} />
                  )}
                </div>
-               <div style={{ padding: '8px', borderTop: '1px solid var(--vscode-panel-border)' }}>
+               <div style={{ padding: '12px 8px', flexShrink: 0, borderTop: '1px solid var(--vscode-panel-border)', backgroundColor: 'var(--vscode-sideBar-background)', zIndex: 10, boxShadow: '0 -4px 10px rgba(0,0,0,0.15)' }}>
                  {scanError && <div style={{ color: '#f14c4c', fontSize: '11px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={12} /> {scanError}</div>}
-                 {isExternalAI && (
-                   <div style={{ color: '#f14c4c', fontSize: '11px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={12} /> Requires Built-in AI on</span>
-                     <label className="ai-switch" title="Toggle Internal/External AI">
-                       <input type="checkbox" checked={false} onChange={(e) => {
-                         getVscode()?.postMessage({ command: 'updateSetting', key: 'vivian.aiProvider', value: 'Internal Vivian API' });
-                       }} />
-                       <span className="ai-slider"></span>
-                     </label>
-                   </div>
-                 )}
+                 <div style={{ fontSize: '11px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                   {isExternalAI ? (
+                     <span style={{ color: '#f14c4c', display: 'flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={12} /> Requires Built-in AI on</span>
+                   ) : (
+                     <span style={{ color: 'var(--vscode-descriptionForeground,#888)', display: 'flex', alignItems: 'center', gap: '4px' }}>Built-in AI</span>
+                   )}
+                   <label className="ai-switch" title="Toggle Internal/External AI">
+                     <input type="checkbox" checked={!isExternalAI} onChange={(e) => {
+                       const newVal = e.target.checked ? 'Internal Vivian API' : 'External MCP Client';
+                       getVscode()?.postMessage({ command: 'updateSetting', key: 'vivian.aiProvider', value: newVal });
+                     }} />
+                     <span className="ai-slider"></span>
+                   </label>
+                 </div>
                  <button className="git-button" style={{ width: '100%', justifyContent: 'center' }} onClick={handleScan} disabled={scanning || checkedFiles.size === 0 || isExternalAI}>
                    {scanning ? <><Loader2 size={14} className="spin" /> Scanning...</> : 'Scan Selected'}
                  </button>
@@ -294,8 +297,8 @@ export default function App() {
           )}
           
           {activeTab === 'git' && (
-             <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-               <div className="git-container" style={{ flex: 1, overflowY: 'auto' }}>
+             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+               <div className="git-container" style={{ flex: 1, overflowY: 'auto', padding: '8px' }}>
                  {gitChanges.length === 0 ? <div className="loading" style={{padding: '8px', fontSize: '11px', color: '#888'}}>No changes found.</div> : gitChanges.map(file => (
                    <div key={file} className={`tree-row file-item`} onClick={() => openDiff(file)}>
                      <FileText size={14} className="file-icon" />
@@ -303,19 +306,22 @@ export default function App() {
                    </div>
                  ))}
                </div>
-               <div style={{ padding: '8px', borderTop: '1px solid var(--vscode-panel-border)' }}>
+               <div style={{ padding: '12px 8px', flexShrink: 0, borderTop: '1px solid var(--vscode-panel-border)', backgroundColor: 'var(--vscode-sideBar-background)', zIndex: 10, boxShadow: '0 -4px 10px rgba(0,0,0,0.15)' }}>
                  {gitScanError && <div style={{ color: '#f14c4c', fontSize: '11px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={12} /> {gitScanError}</div>}
-                 {isExternalAI && (
-                   <div style={{ color: '#f14c4c', fontSize: '11px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={12} /> Requires Built-in AI on</span>
-                     <label className="ai-switch" title="Toggle Internal/External AI">
-                       <input type="checkbox" checked={false} onChange={(e) => {
-                         getVscode()?.postMessage({ command: 'updateSetting', key: 'vivian.aiProvider', value: 'Internal Vivian API' });
-                       }} />
-                       <span className="ai-slider"></span>
-                     </label>
-                   </div>
-                 )}
+                 <div style={{ fontSize: '11px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                   {isExternalAI ? (
+                     <span style={{ color: '#f14c4c', display: 'flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={12} /> Requires Built-in AI on</span>
+                   ) : (
+                     <span style={{ color: 'var(--vscode-descriptionForeground,#888)', display: 'flex', alignItems: 'center', gap: '4px' }}>Built-in AI</span>
+                   )}
+                   <label className="ai-switch" title="Toggle Internal/External AI">
+                     <input type="checkbox" checked={!isExternalAI} onChange={(e) => {
+                       const newVal = e.target.checked ? 'Internal Vivian API' : 'External MCP Client';
+                       getVscode()?.postMessage({ command: 'updateSetting', key: 'vivian.aiProvider', value: newVal });
+                     }} />
+                     <span className="ai-slider"></span>
+                   </label>
+                 </div>
                  <button className="git-button" style={{ width: '100%', justifyContent: 'center' }} onClick={handleGitScan} disabled={scanningGit || gitChanges.length === 0 || isExternalAI}>
                    {scanningGit ? <><Loader2 size={14} className="spin" /> Scanning Changes...</> : 'Scan Vulnerabilities'}
                  </button>
