@@ -39,12 +39,12 @@ export function initChat() {
         <i style="color:var(--vscode-descriptionForeground);">Vivian's Built-in AI is currently disabled.</i>
         
         <div style="background:var(--vscode-editor-background);padding:8px;border-radius:4px;border:1px solid var(--vscode-panel-border);width:100%;">
-          <h4 style="color:var(--vscode-foreground);font-size:12px;">How to connect to Vivian via MCP</h4>
-          <ol style="color:var(--vscode-descriptionForeground);font-size:11px;line-height:1.2;">
-            <li>Press <code>Cmd+Shift+P</code> (or <code>Ctrl+Shift+P</code>)</li>
-            <li>Run <b>Vivian: Copy MCP Config</b></li>
-            <li>Paste the copied JSON into your agent's MCP settings (e.g., Antigravity or Cursor).</li>
-            <li>Tell your agent to prioritize using Vivian's graph tools first.</li>
+          <h4 style="margin:0 0 6px 0;color:var(--vscode-foreground);font-size:12px;">How to connect to Vivian via MCP</h4>
+          <ol style="margin:0;padding-left:18px;color:var(--vscode-descriptionForeground);font-size:11px;line-height:1.4;">
+            <li style="margin: 0; padding: 0;">Press <code>Cmd+Shift+P</code> (or <code>Ctrl+Shift+P</code>)</li>
+            <li style="margin: 0; padding: 0;">Run <b>Vivian: Copy MCP Config</b></li>
+            <li style="margin: 0; padding: 0;">Paste the copied JSON into your agent's MCP settings (e.g., Antigravity or Cursor).</li>
+            <li style="margin: 0; padding: 0;">Tell your agent to prioritize using Vivian's graph tools first.</li>
           </ol>
         </div>
       </div>
