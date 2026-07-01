@@ -254,6 +254,23 @@ export default function App() {
     }
   };
 
+  const aiProvider = (window as any).AI_PROVIDER || 'External MCP Client';
+
+  if (aiProvider === 'External MCP Client') {
+    return (
+      <div style={{ padding: '32px', textAlign: 'center', color: '#ccc', marginTop: '100px' }}>
+         <div style={{ fontSize: '48px', marginBottom: '24px' }}>🛡️</div>
+         <h2 style={{ color: '#fff', marginBottom: '16px' }}>Vulnerability Manager</h2>
+         <p style={{ fontSize: '14px', lineHeight: '1.6', maxWidth: '450px', margin: '0 auto', fontStyle: 'italic', backgroundColor: 'rgba(255,255,255,0.05)', padding: '16px', borderRadius: '8px', border: '1px solid var(--vscode-panel-border)' }}>
+           Please use your connected external agent (e.g., Antigravity or Cline) to run vulnerability scans! They have full access to the Vivian knowledge graph via MCP.
+         </p>
+         <p style={{ fontSize: '12px', marginTop: '24px', opacity: 0.5 }}>
+           You can re-enable this internal scanner UI by changing the AI Provider in Vivian Settings.
+         </p>
+      </div>
+    );
+  }
+
   return (
     <div className="scanner-layout">
       {/* Sidebar */}

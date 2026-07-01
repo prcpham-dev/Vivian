@@ -41,21 +41,16 @@
           "command": "vivian.openGraph",
           "group": "navigation"
         }
-      ],
-      "commandPalette": [
-        {
-          "command": "vivian.openVulnManager",
-          "when": "config.vivian.enableInternalAgents"
-        }
       ]
     },
     "configuration": {
       "title": "Vivian Settings",
       "properties": {
-        "vivian.enableInternalAgents": {
-          "type": "boolean",
-          "default": false,
-          "description": "Enable internal agents (Chat and Vulnerability Manager). When disabled, these UI components are hidden. Recommended to disable if using Antigravity or Cline."
+        "vivian.aiProvider": {
+          "type": "string",
+          "enum": ["External MCP Client", "Internal Vivian API"],
+          "default": "External MCP Client",
+          "description": "Select how you want to interact with Vivian's AI features. Default is 'External MCP Client' where you use agents like Antigravity. Select 'Internal Vivian API' to use built-in UI panels."
         }
       }
     }

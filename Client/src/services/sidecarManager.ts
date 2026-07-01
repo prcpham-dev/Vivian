@@ -139,7 +139,7 @@ export async function startSidecar(extensionPath: string): Promise<void> {
 
   sidecarProcess = cp.spawn(
     python,
-    ['-m', 'uvicorn', 'main:app', '--host', '127.0.0.1', '--port', String(port)],
+    ['-m', 'uvicorn', 'sidecar:app', '--host', '127.0.0.1', '--port', String(port)],
     { cwd: serverPath, env: { ...process.env }, shell: process.platform === 'win32' }
   )
 

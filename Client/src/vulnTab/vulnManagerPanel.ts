@@ -165,6 +165,7 @@ export class VulnManagerPanel {
 </head>
 <body>
 <div id="root"></div>
+<script nonce="${nonce}">window.AI_PROVIDER = ${JSON.stringify(vscode.workspace.getConfiguration('vivian').get('aiProvider') || 'External MCP Client')};</script>
 <script nonce="${nonce}" src="${scriptUri}"></script>
 </body>
 </html>`

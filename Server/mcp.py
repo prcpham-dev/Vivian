@@ -1,32 +1,5 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
 import sys
 import json
-
-from handlers import graph, scan, git, ws, settings as settings_handler, chat
-
-app = FastAPI(title="Vivian Sidecar", version="0.1.0")
-
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
-
-app.include_router(graph.router)
-app.include_router(scan.router)
-app.include_router(git.router)
-app.include_router(ws.router)
-app.include_router(settings_handler.router)
-app.include_router(chat.router)
-
-
-@app.get("/health")
-def health():
-    return {"status": "ok", "service": "vivian-sidecar"}
-
-@app.get("/test-chat")
-def serve_chat_test():
-    return FileResponse("chat_test.html")
-
-# MCP SERVER LOGIC
 from mcp.server.fastmcp import FastMCP
 from core.scanner.graph_builder import build_graph, load_cache, save_cache
 from core.scanner.discovery import read_file_contents
@@ -204,8 +177,4 @@ def get_callers(workspace_root: str, function_id: str) -> str:
         return f"Error: {str(e)}"
 
 if __name__ == "__main__":
-    if "--mcp" in sys.argv:
-        mcp.run(transport='stdio')
-    else:
-        import uvicorn
-        uvicorn.run("main:app", host="127.0.0.1", port=8765)
+    mcp.run(transport='stdio')

@@ -17,14 +17,14 @@ export function initChat() {
   chatBtn.addEventListener('click', () => chatDrawer.classList.toggle('open'))
   closeChatBtn.addEventListener('click', () => chatDrawer.classList.remove('open'))
 
-  if (!(window as any).ENABLE_INTERNAL_AGENTS) {
+  if ((window as any).AI_PROVIDER === 'External MCP Client') {
     if (chatSettingsBtn) chatSettingsBtn.style.display = 'none'
     if (chatInputArea) chatInputArea.style.display = 'none'
     if (clearChatBtn) clearChatBtn.style.display = 'none'
-    
+
     const div = document.createElement('div')
     div.className = 'chat-msg ai'
-    div.innerHTML = '<i>Internal agents are disabled. Please use your connected external agent (e.g., Antigravity or Cline) to ask questions and interact with the codebase.</i>'
+    div.innerHTML = '<i>Please use your external agent (e.g., Antigravity or Cursor) to ask questions and interact with the codebase.</i>'
     chatMessages.appendChild(div)
     return
   }

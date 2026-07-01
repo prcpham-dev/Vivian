@@ -219,7 +219,7 @@ export class GraphPanel {
 </div>
 
 <script nonce="${nonce}" src="https://d3js.org/d3.v7.min.js"></script>
-<script nonce="${nonce}">window.WORKSPACE_ROOT = ${JSON.stringify(this.workspaceRoot)};window.SIDECAR_PORT = ${port};window.THEME_STATE = ${JSON.stringify(this.context.globalState.get('vivian.themeState') || null)};window.ENABLE_INTERNAL_AGENTS = ${vscode.workspace.getConfiguration('vivian').get('enableInternalAgents') || false};</script>
+<script nonce="${nonce}">window.WORKSPACE_ROOT = ${JSON.stringify(this.workspaceRoot)};window.SIDECAR_PORT = ${port};window.THEME_STATE = ${JSON.stringify(this.context.globalState.get('vivian.themeState') || null)};window.AI_PROVIDER = ${JSON.stringify(vscode.workspace.getConfiguration('vivian').get('aiProvider') || 'External MCP Client')};</script>
 <script nonce="${nonce}" src="${scriptUri}"></script>
 </body>
 </html>`
