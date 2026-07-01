@@ -34,22 +34,23 @@ export function initChat() {
 
     const div = document.createElement('div')
     div.className = 'chat-msg ai'
-    div.innerHTML = `
-      <div style="display:flex;flex-direction:column;gap:6px;align-items:start;">
+    div.innerHTML = `<div style="display:flex;flex-direction:column;gap:6px;align-items:start;white-space:normal;">
         <i style="color:var(--vscode-descriptionForeground);">Vivian's Built-in AI is currently disabled.</i>
         
-        <div style="background:var(--vscode-editor-background);padding:8px;border-radius:4px;border:1px solid var(--vscode-panel-border);width:100%;">
-          <h4 style="margin:0 0 6px 0;color:var(--vscode-foreground);font-size:12px;">How to connect to Vivian via MCP</h4>
-          <ol style="margin:0;padding-left:18px;color:var(--vscode-descriptionForeground);font-size:11px;line-height:1.4;">
-            <li style="margin: 0; padding: 0;">Press <code>Cmd+Shift+P</code> (or <code>Ctrl+Shift+P</code>)</li>
-            <li style="margin: 0; padding: 0;">Run <b>Vivian: Copy MCP Config</b></li>
-            <li style="margin: 0; padding: 0;">Paste the copied JSON into your agent's MCP settings (e.g., Antigravity or Cursor).</li>
-            <li style="margin: 0; padding: 0;">Tell your agent to prioritize using Vivian's graph tools first.</li>
-          </ol>
-        </div>
-      </div>
-    `
+        <h4 style="margin:6px 0 0 0;color:var(--vscode-foreground);font-size:12px;">External MCP Connection</h4>
+        <p style="margin:4px 0;color:var(--vscode-descriptionForeground);font-size:11px;">You can connect Vivian to your external AI agent using the FastMCP server.</p>
+        <button id="open-mcp-setup-btn" style="background:var(--vscode-button-background);color:var(--vscode-button-foreground);border:none;padding:6px 12px;border-radius:2px;font-size:11px;cursor:pointer;margin-top:4px;">
+          View Setup Instructions
+        </button>
+      </div>`
     chatMessages.appendChild(div)
+
+    const setupBtn = div.querySelector('#open-mcp-setup-btn')
+    if (setupBtn && vscode) {
+      setupBtn.addEventListener('click', () => {
+        vscode.postMessage({ command: 'openMcpSetup' })
+      })
+    }
 
     return
   }

@@ -34,18 +34,29 @@ async function build() {
     format: 'iife',
   })
 
+  const mcpSetupCtx = await esbuild.context({
+    ...baseOpts,
+    entryPoints: ['src/mcpSetupTab/ui/index.ts'],
+    outfile: 'out/mcpSetup.js',
+    platform: 'browser',
+    format: 'iife',
+  })
+
   if (isWatch) {
     await ctx.watch()
     await webviewCtx.watch()
     await graphAppCtx.watch()
+    await mcpSetupCtx.watch()
     console.log('Watching...')
   } else {
     await ctx.rebuild()
     await webviewCtx.rebuild()
     await graphAppCtx.rebuild()
+    await mcpSetupCtx.rebuild()
     await ctx.dispose()
     await webviewCtx.dispose()
     await graphAppCtx.dispose()
+    await mcpSetupCtx.dispose()
     console.log('Build complete.')
   }
 }

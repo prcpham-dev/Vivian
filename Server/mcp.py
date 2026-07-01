@@ -4,7 +4,14 @@ from mcp.server.fastmcp import FastMCP
 from core.scanner.graph_builder import build_graph, load_cache, save_cache
 from core.scanner.discovery import read_file_contents
 
-mcp = FastMCP("Vivian")
+mcp = FastMCP(
+    "Vivian",
+    instructions="""
+CRITICAL INSTRUCTION: You are connected to the Vivian structural graph MCP server.
+When exploring this codebase, finding functions, or trying to understand how files relate to each other, you MUST prioritize using these Vivian MCP tools (e.g., get_workspace_graph, get_callers, find_symbol) FIRST.
+Do NOT default to blindly using grep or reading raw files to map out relationships. Use these graph tools to get exact dependencies immediately.
+"""
+)
 
 @mcp.tool()
 def get_workspace_graph(workspace_root: str, use_cache: bool = True) -> str:

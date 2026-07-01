@@ -2,7 +2,7 @@
   "name": "vivian-vision",
   "displayName": "Vivian - Code vision",
   "description": "Code analysis tool designed to visualize the codebase as an interactive graph.",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "publisher": "prcpham",
   "repository": {
     "type": "git",
@@ -27,6 +27,11 @@
         "icon": "$(telescope)"
       },
       {
+        "command": "vivian.openMcpSetup",
+        "title": "Vivian: Open MCP Setup Instructions",
+        "icon": "$(plug)"
+      },
+      {
         "command": "vivian.copyMcpConfig",
         "title": "Vivian: Copy MCP Config"
       },
@@ -48,7 +53,10 @@
       "properties": {
         "vivian.aiProvider": {
           "type": "string",
-          "enum": ["External MCP Client", "Internal Vivian API"],
+          "enum": [
+            "External MCP Client",
+            "Internal Vivian API"
+          ],
           "default": "External MCP Client",
           "description": "Select how you want to interact with Vivian's AI features. Default is 'External MCP Client' where you use agents like Antigravity. Select 'Internal Vivian API' to use built-in UI panels."
         }

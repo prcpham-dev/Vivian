@@ -72,6 +72,8 @@ export class GraphPanel {
       log(`[WebView] ${msg.text}`)
     } else if (msg.command === 'openVulnManager') {
       vscode.commands.executeCommand('vivian.openVulnManager')
+    } else if (msg.command === 'openMcpSetup') {
+      vscode.commands.executeCommand('vivian.openMcpSetup')
     } else if (msg.command === 'updateSetting' && typeof msg.key === 'string') {
       vscode.workspace.getConfiguration().update(msg.key, msg.value, vscode.ConfigurationTarget.Global).then(() => {
         if (msg.key === 'vivian.aiProvider') {

@@ -1,0 +1,24 @@
+<div class="container">
+  <h1>Connecting Vivian to External AI Agents</h1>
+  <p class="subtitle">Use Vivian's structural graph tools directly inside your favorite MCP-compatible AI agent.</p>
+
+  <h2 style="margin-top: 24px;">1. Copy Configuration</h2>
+  <p>Vivian automatically generates the exact JSON configuration block needed to connect your agent to the FastMCP server.</p>
+  <button id="copy-config-btn" class="primary-button">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M4 4l1-1h5.414L14 6.586V14l-1 1H5l-1-1V4zm9 3l-3-3H6v9h7V7z"/><path d="M3 1L2 2v10l1 1h2v-1H3V2h5v1h1V2l-1-1H3z"/></svg>
+    Copy MCP Config
+  </button>
+
+  <h2 style="margin-top: 32px;">2. Paste into your Agent</h2>
+  <p>Paste the copied JSON block into your agent's MCP settings configuration file.</p>
+  
+  <ul>
+    <li><b>Cursor IDE:</b> Open Settings <i>(Gear icon)</i> &rarr; Features &rarr; MCP. Click <b>+ Add new MCP server</b> (Type: Command).</li>
+    <li><b>Antigravity IDE:</b> Open your terminal and paste it into <code>~/.gemini/antigravity-ide/mcp_settings.json</code>.</li>
+    <li><b>Claude Desktop:</b> Open Settings &rarr; Developer &rarr; Edit Config, and paste inside <code>mcpServers</code>.</li>
+  </ul>
+
+  <div class="info-box">
+    <p><b>Magic Prompt Injection:</b> You don't need to write custom rules to tell your agent to use Vivian! The FastMCP server automatically injects a critical instruction that forces the agent to prioritize Vivian's graph tools over its default file-reading abilities.</p>
+  </div>
+</div>

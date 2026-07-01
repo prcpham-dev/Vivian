@@ -2,6 +2,7 @@ import * as vscode from 'vscode'
 import * as path from 'path'
 import { GraphPanel } from './graphTab/graphPanel'
 import { VulnManagerPanel } from './vulnTab/vulnManagerPanel'
+import { McpSetupPanel } from './mcpSetupTab/mcpSetupPanel'
 import { getOrBuildGraph } from './graphTab/graphGenerator'
 import { startSidecar, stopSidecar } from './services/sidecarManager'
 import { log, disposeLogger } from './utils/logger'
@@ -21,7 +22,10 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('vivian.openVulnManager', () => {
       VulnManagerPanel.create(context)
     }),
-    vscode.commands.registerCommand('vivian.copyMcpConfig', () => copyMcpConfig(context))
+    vscode.commands.registerCommand('vivian.copyMcpConfig', () => copyMcpConfig(context)),
+    vscode.commands.registerCommand('vivian.openMcpSetup', () => {
+      McpSetupPanel.createOrShow(context)
+    })
   )
 }
 

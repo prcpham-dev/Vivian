@@ -88,25 +88,6 @@ Once the extension is installed, you can launch the Vivian interactive graph in 
 
    <img src="assets/command_pallet.png" width="500" alt="Vivian Command Palette">
 
-## Project Structure
-```text
-Vivian/
-├── Client/                 # VS Code Extension (TypeScript)
-│   └── src/                # Extension source code
-├── Server/                 # Python Backend (FastAPI / WebSockets)
-│   ├── core/               # Core business logic and LLM agents
-│   ├── handlers/           # Request and WebSocket handlers
-│   └──  main.py             # Server entry point
-├── package.json            # Extension manifest and dependencies
-└── README.md
-```
-
-## Credits
-- **[Percy Pham](https://github.com/prcpham-dev)** — Dev
-- **[Minh Pham](https://github.com/Bubseatbubs)** — Dev + Editor
-- **[Danny Pham](https://github.com/phamdanny)** — Dev + CFO
-- **Darren Tai** — Art
-
 
 # Vivian MCP Server Integration
 
@@ -135,10 +116,9 @@ You do not need to do any complicated manual setup! We have built a dedicated VS
 ### Client Configuration Locations
 
 **Antigravity IDE:**
-*   Open the Antigravity application, click on your **Profile Icon** (usually bottom left).
-*   Click **Settings** > **MCP** tab.
-*   Add a new MCP Server and paste in the configuration. 
-*   *(Alternatively, Antigravity stores its config file directly at `~/.gemini/antigravity-ide/mcp_settings.json`)*.
+*   Antigravity configures MCP servers via a JSON file.
+*   Open the file located at: `~/.gemini/antigravity-ide/mcp_settings.json`
+*   Add a new key under `"mcpServers"` and paste in the configuration.
 
 **Cursor IDE:**
 *   Open Cursor's **Settings** (Gear icon, top right, or `Cmd+Shift+J`).
@@ -151,14 +131,28 @@ You do not need to do any complicated manual setup! We have built a dedicated VS
 *   Click **Edit Config** (this opens `claude_desktop_config.json`).
 *   Paste the JSON inside the `"mcpServers"` block and save the file, then restart Claude Desktop.
 
-> [!TIP]
-> **Forcing the Agent to use Vivian Tools FIRST:** 
-> AI agents are naturally biased to use their own built-in `read_file` or `grep_search` tools because they are hardcoded into their system prompts. 
-> To force them to use Vivian's tools first, create a file named `.cursorrules` (or an equivalent agent instruction file) in the root of your project, and add the following text:
-> ```text
-> You are connected to the "Vivian" MCP Server, which provides deep, graph-based codebase analysis.
+> [!NOTE]
+> **Automatic AI Prompting:** 
+> You do not need to write a `.cursorrules` or configure a custom system prompt to tell your AI agent how to use Vivian! 
 > 
-> CRITICAL INSTRUCTION: When exploring this codebase, finding functions, or trying to understand how files relate to each other, you MUST prioritize using the Vivian MCP tools (e.g., get_workspace_graph, get_callers, find_symbol, get_project_stats) FIRST.
-> 
-> Do NOT default to blindly using grep or reading raw files to map out relationships. Use Vivian's graph tools to get the exact dependencies and callers immediately, and only read raw file contents when you need to see the specific internal logic of a function.
-> ```
+> Vivian's FastMCP server automatically injects a `CRITICAL INSTRUCTION` directly into the agent's context the moment it connects, forcing it to prioritize Vivian's structural graph tools over its default file-reading tools.
+
+## Project Structure
+```text
+Vivian/
+├── Client/                 # VS Code Extension (TypeScript)
+│   └── src/                # Extension source code
+├── Server/                 # Python Backend (FastAPI / WebSockets)
+│   ├── core/               # Core business logic and LLM agents
+│   ├── handlers/           # Request and WebSocket handlers
+│   ├── sidecar.py/         # Server entry point
+│   └── mcp.py              # MCP entry point for user agents
+├── package.json            # Extension manifest and dependencies
+└── README.md
+```
+
+## Credits
+- **[Percy Pham](https://github.com/prcpham-dev)** — Dev
+- **[Minh Pham](https://github.com/Bubseatbubs)** — Dev + Editor
+- **[Danny Pham](https://github.com/phamdanny)** — Dev + CFO
+- **Darren Tai** — Art
