@@ -1,5 +1,5 @@
 import './chat.css'
-import { WS_URL } from '../api'
+import { WS_URL, vscode } from '../api'
 import { getSelectedNode } from '../graph/graph'
 
 export function initChat() {
@@ -17,15 +17,30 @@ export function initChat() {
   chatBtn.addEventListener('click', () => chatDrawer.classList.toggle('open'))
   closeChatBtn.addEventListener('click', () => chatDrawer.classList.remove('open'))
 
+  const aiProviderCheckbox = document.getElementById('ai-provider-checkbox') as HTMLInputElement
+  if (aiProviderCheckbox) {
+    aiProviderCheckbox.checked = ((window as any).AI_PROVIDER !== 'External MCP Client')
+    aiProviderCheckbox.addEventListener('change', () => {
+      if (vscode) {
+        const newVal = aiProviderCheckbox.checked ? 'Internal Vivian API' : 'External MCP Client'
+        vscode.postMessage({ command: 'updateSetting', key: 'vivian.aiProvider', value: newVal })
+      }
+    })
+  }
+
   if ((window as any).AI_PROVIDER === 'External MCP Client') {
-    if (chatSettingsBtn) chatSettingsBtn.style.display = 'none'
     if (chatInputArea) chatInputArea.style.display = 'none'
     if (clearChatBtn) clearChatBtn.style.display = 'none'
 
     const div = document.createElement('div')
     div.className = 'chat-msg ai'
-    div.innerHTML = '<i>Please use your external agent (e.g., Antigravity or Cursor) to ask questions and interact with the codebase.</i>'
+    div.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:12px;align-items:start;">
+        <i>Please use your external agent (e.g., Antigravity or Cursor) to ask questions and interact with the codebase.</i>
+      </div>
+    `
     chatMessages.appendChild(div)
+
     return
   }
 

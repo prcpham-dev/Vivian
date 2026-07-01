@@ -72,6 +72,12 @@ export class GraphPanel {
       log(`[WebView] ${msg.text}`)
     } else if (msg.command === 'openVulnManager') {
       vscode.commands.executeCommand('vivian.openVulnManager')
+    } else if (msg.command === 'updateSetting' && typeof msg.key === 'string') {
+      vscode.workspace.getConfiguration().update(msg.key, msg.value, vscode.ConfigurationTarget.Global).then(() => {
+        if (msg.key === 'vivian.aiProvider') {
+          this.panel.webview.html = this.getHtml(getNonce())
+        }
+      })
     } else if (msg.command === 'openProjectsFolder') {
       const os = require('os')
       const p = vscode.Uri.file(os.homedir() + '/.vivian/projects')
@@ -178,6 +184,11 @@ export class GraphPanel {
   <div id="chat-drawer-header">
     <span>Vivian Chat</span>
     <div style="display:flex;align-items:center;gap:4px;">
+      <span style="font-size:11px;color:var(--vscode-descriptionForeground,#888);margin-right:2px;">Built-in AI</span>
+      <label class="ai-switch" title="Toggle Internal/External AI">
+        <input type="checkbox" id="ai-provider-checkbox">
+        <span class="ai-slider"></span>
+      </label>
       <button id="chat-settings-btn" title="Settings" style="background:none;border:none;color:var(--vscode-icon-foreground,#c5c5c5);cursor:pointer;font-size:16px;">&#x2699;</button>
       <button id="close-chat-btn" title="Close">&#xD7;</button>
     </div>

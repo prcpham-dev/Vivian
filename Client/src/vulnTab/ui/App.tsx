@@ -254,22 +254,7 @@ export default function App() {
     }
   };
 
-  const aiProvider = (window as any).AI_PROVIDER || 'External MCP Client';
-
-  if (aiProvider === 'External MCP Client') {
-    return (
-      <div style={{ padding: '32px', textAlign: 'center', color: '#ccc', marginTop: '100px' }}>
-         <div style={{ fontSize: '48px', marginBottom: '24px' }}>🛡️</div>
-         <h2 style={{ color: '#fff', marginBottom: '16px' }}>Vulnerability Manager</h2>
-         <p style={{ fontSize: '14px', lineHeight: '1.6', maxWidth: '450px', margin: '0 auto', fontStyle: 'italic', backgroundColor: 'rgba(255,255,255,0.05)', padding: '16px', borderRadius: '8px', border: '1px solid var(--vscode-panel-border)' }}>
-           Please use your connected external agent (e.g., Antigravity or Cline) to run vulnerability scans! They have full access to the Vivian knowledge graph via MCP.
-         </p>
-         <p style={{ fontSize: '12px', marginTop: '24px', opacity: 0.5 }}>
-           You can re-enable this internal scanner UI by changing the AI Provider in Vivian Settings.
-         </p>
-      </div>
-    );
-  }
+  const isExternalAI = (window as any).AI_PROVIDER === 'External MCP Client';
 
   return (
     <div className="scanner-layout">
@@ -290,7 +275,18 @@ export default function App() {
                </div>
                <div style={{ padding: '8px', borderTop: '1px solid var(--vscode-panel-border)' }}>
                  {scanError && <div style={{ color: '#f14c4c', fontSize: '11px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={12} /> {scanError}</div>}
-                 <button className="git-button" style={{ width: '100%', justifyContent: 'center' }} onClick={handleScan} disabled={scanning || checkedFiles.size === 0}>
+                 {isExternalAI && (
+                   <div style={{ color: '#f14c4c', fontSize: '11px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={12} /> Requires Built-in AI on</span>
+                     <label className="ai-switch" title="Toggle Internal/External AI">
+                       <input type="checkbox" checked={false} onChange={(e) => {
+                         getVscode()?.postMessage({ command: 'updateSetting', key: 'vivian.aiProvider', value: 'Internal Vivian API' });
+                       }} />
+                       <span className="ai-slider"></span>
+                     </label>
+                   </div>
+                 )}
+                 <button className="git-button" style={{ width: '100%', justifyContent: 'center' }} onClick={handleScan} disabled={scanning || checkedFiles.size === 0 || isExternalAI}>
                    {scanning ? <><Loader2 size={14} className="spin" /> Scanning...</> : 'Scan Selected'}
                  </button>
                </div>
@@ -309,7 +305,18 @@ export default function App() {
                </div>
                <div style={{ padding: '8px', borderTop: '1px solid var(--vscode-panel-border)' }}>
                  {gitScanError && <div style={{ color: '#f14c4c', fontSize: '11px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={12} /> {gitScanError}</div>}
-                 <button className="git-button" style={{ width: '100%', justifyContent: 'center' }} onClick={handleGitScan} disabled={scanningGit || gitChanges.length === 0}>
+                 {isExternalAI && (
+                   <div style={{ color: '#f14c4c', fontSize: '11px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={12} /> Requires Built-in AI on</span>
+                     <label className="ai-switch" title="Toggle Internal/External AI">
+                       <input type="checkbox" checked={false} onChange={(e) => {
+                         getVscode()?.postMessage({ command: 'updateSetting', key: 'vivian.aiProvider', value: 'Internal Vivian API' });
+                       }} />
+                       <span className="ai-slider"></span>
+                     </label>
+                   </div>
+                 )}
+                 <button className="git-button" style={{ width: '100%', justifyContent: 'center' }} onClick={handleGitScan} disabled={scanningGit || gitChanges.length === 0 || isExternalAI}>
                    {scanningGit ? <><Loader2 size={14} className="spin" /> Scanning Changes...</> : 'Scan Vulnerabilities'}
                  </button>
                </div>

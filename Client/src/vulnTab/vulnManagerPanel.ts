@@ -137,6 +137,12 @@ export class VulnManagerPanel {
       } catch (err) {
         this.panel.webview.postMessage({ command: 'fileContent', filePath: msg.filePath, content: `Error reading file: ${err}` })
       }
+    } else if (msg.command === 'updateSetting' && typeof msg.key === 'string') {
+      vscode.workspace.getConfiguration().update(msg.key, msg.value, vscode.ConfigurationTarget.Global).then(() => {
+        if (msg.key === 'vivian.aiProvider') {
+          this.panel.webview.html = this.getHtml()
+        }
+      })
     }
   }
 
