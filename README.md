@@ -130,7 +130,26 @@ You do not need to do any complicated manual setup! We have built a dedicated VS
 1. Open VS Code and press `Cmd+Shift+P` (or `Ctrl+Shift+P`).
 2. Search for and run the command: **`Vivian: Copy MCP Config`**
 3. This will copy a snippet of JSON to your clipboard that points exactly to the virtual environment and your `mcp.py` entrypoint.
-4. Paste that JSON into your Antigravity or Cursor MCP settings file.
+4. Paste that JSON into your agent's MCP settings:
+
+### Client Configuration Locations
+
+**Antigravity IDE:**
+*   Open the Antigravity application, click on your **Profile Icon** (usually bottom left).
+*   Click **Settings** > **MCP** tab.
+*   Add a new MCP Server and paste in the configuration. 
+*   *(Alternatively, Antigravity stores its config file directly at `~/.gemini/antigravity-ide/mcp_settings.json`)*.
+
+**Cursor IDE:**
+*   Open Cursor's **Settings** (Gear icon, top right, or `Cmd+Shift+J`).
+*   Navigate to **Features** on the left menu, and scroll down to the **MCP** section.
+*   Click **+ Add new MCP server**. 
+*   Select **Type: command**, name it `vivian-graph`, and paste the generated command and arguments.
+
+**Claude Desktop:**
+*   Open Claude Desktop and go to **Settings** -> **Developer**.
+*   Click **Edit Config** (this opens `claude_desktop_config.json`).
+*   Paste the JSON inside the `"mcpServers"` block and save the file, then restart Claude Desktop.
 
 > [!TIP]
 > **Forcing the Agent to use Vivian Tools FIRST:** 
