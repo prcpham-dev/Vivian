@@ -137,6 +137,12 @@ export class VulnManagerPanel {
       } catch (err) {
         this.panel.webview.postMessage({ command: 'fileContent', filePath: msg.filePath, content: `Error reading file: ${err}` })
       }
+    } else if (msg.command === 'updateSetting' && typeof msg.key === 'string') {
+      vscode.workspace.getConfiguration().update(msg.key, msg.value, vscode.ConfigurationTarget.Global).then(() => {
+        if (msg.key === 'vivian.aiProvider') {
+          this.panel.webview.html = this.getHtml()
+        }
+      })
     }
   }
 
@@ -165,6 +171,7 @@ export class VulnManagerPanel {
 </head>
 <body>
 <div id="root"></div>
+<script nonce="${nonce}">window.AI_PROVIDER = ${JSON.stringify(vscode.workspace.getConfiguration('vivian').get('aiProvider') || 'External MCP Client')};</script>
 <script nonce="${nonce}" src="${scriptUri}"></script>
 </body>
 </html>`

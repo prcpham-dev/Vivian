@@ -1,0 +1,67 @@
+<div class="container">
+  <h1>Connecting Vivian to External AI Agents</h1>
+  <p class="subtitle">Use Vivian's structural graph tools directly inside your favorite MCP-compatible AI agent.</p>
+
+  <div class="info-box" style="margin-top: 20px;">
+    <p>
+      <b>⚠️ Scan your workspace first.</b><br>
+      Vivian's MCP tools read from a pre-built graph cache. Before your agent can use any tool, you must open the
+      <b>Vivian Graph panel</b> in VS Code and click <b>Scan</b> to generate the graph for your workspace.
+      Without this step, all MCP tool calls will return an error.
+    </p>
+  </div>
+
+  <h2 style="margin-top: 24px;">1. Copy Configuration</h2>
+  <p>Vivian automatically generates the exact JSON configuration block needed to connect your agent to the FastMCP server.</p>
+  
+  <div style="display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap;">
+    <div style="flex: 1; min-width: 250px; border: 1px solid var(--vscode-panel-border); padding: 16px; border-radius: 6px; background-color: var(--vscode-editorWidget-background);">
+      <h3 style="margin-top: 0; font-size: 14px; font-weight: 600;">Option A: VS Code Extension</h3>
+      <p style="font-size: 12px; margin-bottom: 16px; color: var(--vscode-descriptionForeground);">Use this if you installed Vivian from the extension marketplace or a packaged VSIX.</p>
+      <button id="copy-config-btn" class="primary-button">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M4 4l1-1h5.414L14 6.586V14l-1 1H5l-1-1V4zm9 3l-3-3H6v9h7V7z" />
+          <path d="M3 1L2 2v10l1 1h2v-1H3V2h5v1h1V2l-1-1H3z" />
+        </svg>
+        Copy Extension Config
+      </button>
+    </div>
+    
+    <div style="flex: 1; min-width: 250px; border: 1px solid var(--vscode-panel-border); padding: 16px; border-radius: 6px; background-color: var(--vscode-editorWidget-background);">
+      <h3 style="margin-top: 0; font-size: 14px; font-weight: 600;">Option B: GitHub Clone / Dev Mode</h3>
+      <p style="font-size: 12px; margin-bottom: 16px; color: var(--vscode-descriptionForeground);">Use this if you cloned the Vivian repository and are running or developing the codebase locally.</p>
+      <button id="copy-dev-config-btn" class="primary-button">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M4 4l1-1h5.414L14 6.586V14l-1 1H5l-1-1V4zm9 3l-3-3H6v9h7V7z" />
+          <path d="M3 1L2 2v10l1 1h2v-1H3V2h5v1h1V2l-1-1H3z" />
+        </svg>
+        Copy Development Config
+      </button>
+    </div>
+  </div>
+
+  <h2 style="margin-top: 32px;">2. Manually Paste into your Agent</h2>
+  <p>Paste the copied JSON block <b>manually</b> into your agent's MCP settings configuration file.
+    Vivian cannot write to external agent config files automatically — this step is always done by you.</p>
+
+  <ul>
+    <li><b>Cursor IDE:</b> Open Settings <i>(Gear icon)</i> &rarr; Features &rarr; MCP. Click <b>+ Add new MCP
+        server</b> (Type: Command).</li>
+    <li><b>Antigravity IDE:</b> Open your terminal and paste it into
+      <code>~/.gemini/antigravity-ide/mcp_settings.json</code>.
+    </li>
+    <li><b>Claude Desktop:</b> Open Settings &rarr; Developer &rarr; Edit Config, and paste inside
+      <code>mcpServers</code>.
+    </li>
+  </ul>
+
+  <h2 style="margin-top: 32px;">3. Restart your IDE</h2>
+  <p>After pasting the configuration, restart your IDE to apply the changes by: </p>
+  <button id="restart-ide-btn" class="primary-button">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+      <path d="M4 4l1-1h5.414L14 6.586V14l-1 1H5l-1-1V4zm9 3l-3-3H6v9h7V7z" />
+      <path d="M3 1L2 2v10l1 1h2v-1H3V2h5v1h1V2l-1-1H3z" />
+    </svg>
+    Restart IDE
+  </button>
+</div>

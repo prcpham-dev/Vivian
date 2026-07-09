@@ -58,7 +58,7 @@ def build_graph(
     nodes_dict: dict[str, GraphNode] = {}
     relationships: List[GraphRelationship] = []
     
-    class_locations: dict[str, str] = {}
+    class_locations: dict[str, list[str]] = {}
 
     # Phase 3: Parse & Store
     for rel_path, content in file_contents.items():
@@ -131,7 +131,7 @@ def build_graph(
                 }
             }
             add_relationship(relationships, "CONTAINS", rel_path, cls_id)
-            class_locations[cls['name']] = rel_path
+            class_locations.setdefault(cls['name'], []).append(rel_path)
             
         for intf in parsed.get("interfaces", []):
             intf_id = f"{rel_path}::{intf['name']}"
@@ -144,7 +144,7 @@ def build_graph(
                 }
             }
             add_relationship(relationships, "CONTAINS", rel_path, intf_id)
-            class_locations[intf['name']] = rel_path
+            class_locations.setdefault(intf['name'], []).append(rel_path)
 
         for struct in parsed.get("structs", []):
             struct_id = f"{rel_path}::{struct['name']}"
@@ -226,11 +226,55 @@ def _build_directory_hierarchy(rel_path: str, nodes_dict: dict, relationships: L
         add_relationship(relationships, "CONTAINS", parent_id, current_id)
         current_id = parent_id
 
+# Maps file extensions to a language group so we can avoid cross-language false links.
+_LANG_GROUPS: Dict[str, str] = {
+    ".java": "java",
+    ".py": "python",
+    ".go": "go",
+    ".rs": "rust",
+    ".cs": "csharp",
+    ".ts": "js", ".tsx": "js", ".js": "js", ".jsx": "js",
+    ".c": "c", ".cpp": "c", ".h": "c", ".hpp": "c",
+}
+
+def _resolve_class_location(
+    base: str,
+    src_file: str,
+    imported_files: List[str],
+    class_locations: Dict[str, List[str]],
+) -> Optional[str]:
+    """
+    Resolves the best-matching file where 'base' class/interface is defined.
+
+    Priority:
+      1. A file explicitly imported by the source file.
+      2. A file that shares the same language group as the source file.
+      3. If only one candidate exists, use it directly.
+      4. Ambiguous (cross-language, no import link) — return None to skip.
+    """
+    candidates = class_locations.get(base, [])
+    if not candidates:
+        return None
+    if len(candidates) == 1:
+        return candidates[0]
+    # 1. Prefer explicitly imported files
+    for c in candidates:
+        if c in imported_files:
+            return c
+    # 2. Prefer same language
+    src_lang = _LANG_GROUPS.get(Path(src_file).suffix.lower(), "unknown")
+    same_lang = [c for c in candidates if _LANG_GROUPS.get(Path(c).suffix.lower(), "?") == src_lang]
+    if len(same_lang) == 1:
+        return same_lang[0]
+    # 3. Ambiguous — skip to avoid false cross-language inheritance links
+    return None
+
+
 def _track_function_calls_and_inheritance(
     nodes: dict,
     relationships: List[GraphRelationship],
     contents: dict,
-    class_locations: dict
+    class_locations: Dict[str, List[str]]
 ):
     imports_map = {}
     for r in relationships:
@@ -240,21 +284,23 @@ def _track_function_calls_and_inheritance(
     # 1. Inheritance
     for node_id, node in nodes.items():
         if node["label"] != "File": continue
-        
+
+        imported_files = imports_map.get(node_id, [])
+
         # For classes
         for c in node["properties"].get("classes", []):
             c_id = f"{node_id}::{c['name']}"
             for base in c.get("extends", []):
-                base_loc = class_locations.get(base)
+                base_loc = _resolve_class_location(base, node_id, imported_files, class_locations)
                 if base_loc:
                     base_id = f"{base_loc}::{base}"
                     add_relationship(relationships, "INHERITS", c_id, base_id)
-                    
+
         # For interfaces
         for i in node["properties"].get("interfaces", []):
             i_id = f"{node_id}::{i['name']}"
             for base in i.get("extends", []):
-                base_loc = class_locations.get(base)
+                base_loc = _resolve_class_location(base, node_id, imported_files, class_locations)
                 if base_loc:
                     base_id = f"{base_loc}::{base}"
                     add_relationship(relationships, "INHERITS", i_id, base_id)

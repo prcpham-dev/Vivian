@@ -1,5 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+import sys
+import uvicorn
+import json
 
 from handlers import graph, scan, git, ws, settings as settings_handler, chat
 
@@ -15,8 +19,6 @@ app.include_router(settings_handler.router)
 app.include_router(chat.router)
 
 
-from fastapi.responses import FileResponse
-
 @app.get("/health")
 def health():
     return {"status": "ok", "service": "vivian-sidecar"}
@@ -24,3 +26,6 @@ def health():
 @app.get("/test-chat")
 def serve_chat_test():
     return FileResponse("chat_test.html")
+
+if __name__ == "__main__":
+    uvicorn.run("sidecar_server:app", host="127.0.0.1", port=8765)

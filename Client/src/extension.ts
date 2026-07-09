@@ -2,6 +2,7 @@ import * as vscode from 'vscode'
 import * as path from 'path'
 import { GraphPanel } from './graphTab/graphPanel'
 import { VulnManagerPanel } from './vulnTab/vulnManagerPanel'
+import { McpSetupPanel } from './mcpSetupTab/mcpSetupPanel'
 import { getOrBuildGraph } from './graphTab/graphGenerator'
 import { startSidecar, stopSidecar } from './services/sidecarManager'
 import { log, disposeLogger } from './utils/logger'
@@ -20,8 +21,43 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('vivian.openGraph', () => openGraph(context, false)),
     vscode.commands.registerCommand('vivian.openVulnManager', () => {
       VulnManagerPanel.create(context)
+    }),
+    vscode.commands.registerCommand('vivian.copyMcpConfig', (type?: 'extension' | 'development') => copyMcpConfig(context, type)),
+    vscode.commands.registerCommand('vivian.openMcpSetup', () => {
+      McpSetupPanel.createOrShow(context)
     })
   )
+}
+
+async function copyMcpConfig(context: vscode.ExtensionContext, type?: 'extension' | 'development'): Promise<void> {
+  const isWindows = process.platform === 'win32'
+  
+  let basePath = context.extensionPath
+  if (type === 'development') {
+    const workspaceFolders = vscode.workspace.workspaceFolders
+    if (workspaceFolders && workspaceFolders.length > 0) {
+      basePath = workspaceFolders[0].uri.fsPath
+    }
+  }
+
+  const pythonPath = isWindows
+    ? path.join(basePath, 'Server', 'venv', 'Scripts', 'python.exe')
+    : path.join(basePath, 'Server', 'venv', 'bin', 'python')
+  
+  const scriptPath = path.join(basePath, 'Server', 'mcp_server.py')
+  
+  const config = {
+    mcpServers: {
+      "vivian-graph": {
+        command: pythonPath,
+        args: [scriptPath],
+        env: {}
+      }
+    }
+  }
+
+  await vscode.env.clipboard.writeText(JSON.stringify(config, null, 2))
+  vscode.window.showInformationMessage(`Vivian: MCP Configuration (${type === 'development' ? 'Development Mode' : 'Extension Mode'}) copied to clipboard!`)
 }
 
 async function openGraph(context: vscode.ExtensionContext, forceRebuild: boolean): Promise<void> {
