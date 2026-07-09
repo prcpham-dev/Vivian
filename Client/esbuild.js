@@ -2,13 +2,27 @@ const esbuild = require('esbuild')
 const isWatch = process.argv.includes('--watch')
 const isProd = process.argv.includes('--production')
 
+const fs = require('fs')
+const path = require('path')
+
 const baseOpts = {
   bundle: true,
   minify: isProd,
   sourcemap: !isProd,
 }
 
+function copyMcpSetupAssets() {
+  const srcHtml = path.join(__dirname, 'src', 'mcpSetupTab', 'ui', 'index.html')
+  const srcCss = path.join(__dirname, 'src', 'mcpSetupTab', 'ui', 'style.css')
+  const destHtml = path.join(__dirname, 'out', 'mcpSetup.html')
+  const destCss = path.join(__dirname, 'out', 'mcpSetup.css')
+  fs.mkdirSync(path.dirname(destHtml), { recursive: true })
+  fs.copyFileSync(srcHtml, destHtml)
+  fs.copyFileSync(srcCss, destCss)
+}
+
 async function build() {
+  copyMcpSetupAssets()
   const ctx = await esbuild.context({
     ...baseOpts,
     entryPoints: ['src/extension.ts'],

@@ -18,7 +18,10 @@ export class McpSetupPanel {
       async (msg) => {
         switch (msg.command) {
           case 'copyMcpConfig':
-            await vscode.commands.executeCommand('vivian.copyMcpConfig')
+            await vscode.commands.executeCommand('vivian.copyMcpConfig', msg.type)
+            break
+          case 'restartIde':
+            await vscode.commands.executeCommand('workbench.action.reloadWindow')
             break
         }
       },
@@ -51,8 +54,8 @@ export class McpSetupPanel {
     const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(extensionPath, 'Client', 'out', 'mcpSetup.js')))
     
     // Read the raw CSS and HTML so it injects nicely
-    const cssPath = path.join(extensionPath, 'Client', 'src', 'mcpSetupTab', 'ui', 'style.css')
-    const htmlPath = path.join(extensionPath, 'Client', 'src', 'mcpSetupTab', 'ui', 'index.html')
+    const cssPath = path.join(extensionPath, 'Client', 'out', 'mcpSetup.css')
+    const htmlPath = path.join(extensionPath, 'Client', 'out', 'mcpSetup.html')
 
     let cssContent = ''
     let htmlContent = ''

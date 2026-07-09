@@ -28,4 +28,4 @@ def serve_chat_test():
     return FileResponse("chat_test.html")
 
 if __name__ == "__main__":
-    uvicorn.run("sidecar:app", host="127.0.0.1", port=8765)
+    uvicorn.run("sidecar_server:app", host="127.0.0.1", port=8765)

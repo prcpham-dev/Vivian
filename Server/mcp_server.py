@@ -193,7 +193,7 @@ def get_callers(workspace_root: str, function_id: str) -> str:
     Finds all files/functions that call a specific function. Provide the full function ID (e.g. 'src/main.ts::myFunc').
 
     NOTE: The graph must be generated first by opening the Vivian panel in VS Code
-    and clicking 'Scan'. This tool only reads the cached result.
+    and clicking 'Scan'. This tool only reads the cursor/cached result.
     """
     try:
         graph = load_cache(workspace_root)
