@@ -2,7 +2,6 @@ import { KnowledgeGraph } from '../types'
 import { GRAPH_BUILD_URL, GRAPH_BUILD_STATUS_URL, GRAPH_CACHE_URL } from '../utils/constants'
 
 const POLL_INTERVAL_MS = 1500
-const POLL_TIMEOUT_MS = 5 * 60 * 1000 // 5 minutes max
 
 export async function buildGraph(workspaceRoot: string, cache = true): Promise<KnowledgeGraph> {
   const startRes = await fetch(GRAPH_BUILD_URL, {
@@ -15,9 +14,8 @@ export async function buildGraph(workspaceRoot: string, cache = true): Promise<K
   }
 
   const statusUrl = `${GRAPH_BUILD_STATUS_URL}?workspace_root=${encodeURIComponent(workspaceRoot)}`
-  const deadline = Date.now() + POLL_TIMEOUT_MS
 
-  while (Date.now() < deadline) {
+  while (true) {
     await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS))
 
     const pollRes = await fetch(statusUrl)
@@ -35,8 +33,6 @@ export async function buildGraph(workspaceRoot: string, cache = true): Promise<K
       throw new Error(`Graph build failed on server: ${error ?? 'unknown error'}`)
     }
   }
-
-  throw new Error('Graph build timed out after 5 minutes.')
 }
 
 export async function loadCacheFromServer(workspaceRoot: string): Promise<KnowledgeGraph | null> {
@@ -49,7 +45,12 @@ export async function loadCacheFromServer(workspaceRoot: string): Promise<Knowle
     if (!res.ok) return null
     const data = (await res.json()) as KnowledgeGraph & { cached?: boolean }
     if (data.cached === false) return null
-    return data
+
+    return {
+      nodes: data.nodes ?? [],
+      relationships: data.relationships ?? [],
+      timestamp: data.timestamp ?? 0,
+    }
   } catch {
     return null
   }
