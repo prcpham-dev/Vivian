@@ -1,6 +1,7 @@
 export const DEFAULT_PORT = 8765
 export const SIDECAR_HEALTH_URL = `http://localhost:${DEFAULT_PORT}/health`
 export const GRAPH_BUILD_URL = `http://localhost:${DEFAULT_PORT}/graph/build`
+export const GRAPH_BUILD_STATUS_URL = `http://localhost:${DEFAULT_PORT}/graph/build/status`
 export const GRAPH_CACHE_URL = `http://localhost:${DEFAULT_PORT}/graph/cache/load`
 export const WS_URL = `ws://localhost:${DEFAULT_PORT}/ws`
 export const CACHE_FILE_NAME = '.vivian-cache.json'

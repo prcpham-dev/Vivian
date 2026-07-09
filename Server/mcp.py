@@ -1,7 +1,7 @@
 import sys
 import json
 from mcp.server.fastmcp import FastMCP
-from core.scanner.graph_builder import build_graph, load_cache, save_cache
+from core.scanner.graph_builder import load_cache
 from core.scanner.discovery import read_file_contents
 
 mcp = FastMCP(
@@ -10,22 +10,29 @@ mcp = FastMCP(
 CRITICAL INSTRUCTION: You are connected to the Vivian structural graph MCP server.
 When exploring this codebase, finding functions, or trying to understand how files relate to each other, you MUST prioritize using these Vivian MCP tools (e.g., get_workspace_graph, get_callers, find_symbol) FIRST.
 Do NOT default to blindly using grep or reading raw files to map out relationships. Use these graph tools to get exact dependencies immediately.
+
+IMPORTANT: The Vivian graph must be generated manually by opening the Vivian panel in VS Code and running a scan. If any tool returns an error about a missing graph, inform the user and ask them to open Vivian and scan their workspace first.
 """
 )
 
-@mcp.tool()
-def get_workspace_graph(workspace_root: str, use_cache: bool = True) -> str:
-    """
-    Builds or retrieves the cached Vivian structural knowledge graph for the given workspace_root.
-    Returns the graph structure as a JSON string containing nodes and relationships.
-    """
-    if use_cache:
-        cached_graph = load_cache(workspace_root)
-        if cached_graph:
-            return json.dumps(cached_graph, indent=2)
+_NO_GRAPH_MSG = (
+    "ERROR: No Vivian graph found for this workspace. "
+    "Please open the Vivian panel in VS Code and run a scan first, then retry."
+)
 
-    graph = build_graph(workspace_root)
-    save_cache(workspace_root, graph)
+@mcp.tool()
+def get_workspace_graph(workspace_root: str) -> str:
+    """
+    Retrieves the cached Vivian structural knowledge graph for the given workspace_root.
+    Returns the graph as a JSON string containing nodes and relationships.
+
+    NOTE: The graph must be generated first by opening the Vivian panel in VS Code
+    and clicking 'Scan'. This tool only reads the cached result — it does not build
+    the graph automatically.
+    """
+    graph = load_cache(workspace_root)
+    if not graph:
+        return _NO_GRAPH_MSG
     return json.dumps(graph, indent=2)
 
 @mcp.tool()
@@ -33,11 +40,13 @@ def get_node_connections(workspace_root: str, node_id: str) -> str:
     """
     Finds all incoming and outgoing edges for a specific node in the Vivian knowledge graph.
     Returns a JSON list of relationships connecting to this node.
+
+    NOTE: The graph must be generated first by opening the Vivian panel in VS Code
+    and clicking 'Scan'. This tool only reads the cached result.
     """
     graph_data = load_cache(workspace_root)
     if not graph_data:
-        graph_data = build_graph(workspace_root)
-        save_cache(workspace_root, graph_data)
+        return _NO_GRAPH_MSG
 
     rels = graph_data.get("relationships", [])
     node_id_lower = node_id.lower()
@@ -64,11 +73,13 @@ def search_graph_nodes(workspace_root: str, query: str) -> str:
     """
     Searches the Vivian knowledge graph nodes for the given query string.
     Matches node properties like name, label, or filePath.
+
+    NOTE: The graph must be generated first by opening the Vivian panel in VS Code
+    and clicking 'Scan'. This tool only reads the cached result.
     """
     graph_data = load_cache(workspace_root)
     if not graph_data:
-        graph_data = build_graph(workspace_root)
-        save_cache(workspace_root, graph_data)
+        return _NO_GRAPH_MSG
 
     nodes = graph_data.get("nodes", [])
     
@@ -89,12 +100,16 @@ def search_graph_nodes(workspace_root: str, query: str) -> str:
 
 @mcp.tool()
 def get_project_stats(workspace_root: str) -> str:
-    """Returns a high-level statistical overview of the codebase (total files, functions, classes)."""
+    """
+    Returns a high-level statistical overview of the codebase (total files, functions, classes).
+
+    NOTE: The graph must be generated first by opening the Vivian panel in VS Code
+    and clicking 'Scan'. This tool only reads the cached result.
+    """
     try:
         graph = load_cache(workspace_root)
         if not graph:
-            graph = build_graph(workspace_root)
-            save_cache(workspace_root, graph)
+            return _NO_GRAPH_MSG
             
         nodes = graph.get("nodes", [])
         files = sum(1 for n in nodes if n.get("label") == "File")
@@ -107,12 +122,16 @@ def get_project_stats(workspace_root: str) -> str:
 
 @mcp.tool()
 def get_file_details(workspace_root: str, filepath: str) -> str:
-    """Returns the details of a specific file, including its classes, functions, and imports."""
+    """
+    Returns the details of a specific file, including its classes, functions, and imports.
+
+    NOTE: The graph must be generated first by opening the Vivian panel in VS Code
+    and clicking 'Scan'. This tool only reads the cached result.
+    """
     try:
         graph = load_cache(workspace_root)
         if not graph:
-            graph = build_graph(workspace_root)
-            save_cache(workspace_root, graph)
+            return _NO_GRAPH_MSG
             
         nodes = graph.get("nodes", [])
         rels = graph.get("relationships", [])
@@ -141,12 +160,16 @@ def get_file_details(workspace_root: str, filepath: str) -> str:
 
 @mcp.tool()
 def find_symbol(workspace_root: str, symbol_name: str) -> str:
-    """Searches the graph for a specific class or function and returns exactly where it is defined."""
+    """
+    Searches the graph for a specific class or function and returns exactly where it is defined.
+
+    NOTE: The graph must be generated first by opening the Vivian panel in VS Code
+    and clicking 'Scan'. This tool only reads the cached result.
+    """
     try:
         graph = load_cache(workspace_root)
         if not graph:
-            graph = build_graph(workspace_root)
-            save_cache(workspace_root, graph)
+            return _NO_GRAPH_MSG
             
         nodes = graph.get("nodes", [])
         matches = []
@@ -166,12 +189,16 @@ def find_symbol(workspace_root: str, symbol_name: str) -> str:
 
 @mcp.tool()
 def get_callers(workspace_root: str, function_id: str) -> str:
-    """Finds all files/functions that call a specific function. Provide the full function ID (e.g. 'src/main.ts::myFunc')."""
+    """
+    Finds all files/functions that call a specific function. Provide the full function ID (e.g. 'src/main.ts::myFunc').
+
+    NOTE: The graph must be generated first by opening the Vivian panel in VS Code
+    and clicking 'Scan'. This tool only reads the cached result.
+    """
     try:
         graph = load_cache(workspace_root)
         if not graph:
-            graph = build_graph(workspace_root)
-            save_cache(workspace_root, graph)
+            return _NO_GRAPH_MSG
             
         rels = graph.get("relationships", [])
         callers = [r["sourceId"] for r in rels if r["type"] == "CALLS" and r["targetId"] == function_id]
