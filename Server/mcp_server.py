@@ -1,8 +1,20 @@
 import sys
 import json
+import threading
+import time
+from pathlib import Path
 from mcp.server.fastmcp import FastMCP
-from core.scanner.graph_builder import load_cache
+from core.scanner.graph_builder import load_cache, save_cache
+from core.scanner.incremental_graph_builder import build_incremental_graph
 from core.scanner.discovery import read_file_contents
+from core.scanner.constants import SUPPORTED_EXTENSIONS
+
+try:
+    from watchdog.observers import Observer
+    from watchdog.events import FileSystemEventHandler
+    _WATCHDOG_AVAILABLE = True
+except ImportError:
+    _WATCHDOG_AVAILABLE = False
 
 mcp = FastMCP(
     "Vivian",
@@ -11,14 +23,171 @@ CRITICAL INSTRUCTION: You are connected to the Vivian structural graph MCP serve
 When exploring this codebase, finding functions, or trying to understand how files relate to each other, you MUST prioritize using these Vivian MCP tools (e.g., get_workspace_graph, get_callers, find_symbol) FIRST.
 Do NOT default to blindly using grep or reading raw files to map out relationships. Use these graph tools to get exact dependencies immediately.
 
-IMPORTANT: The Vivian graph must be generated manually by opening the Vivian panel in VS Code and running a scan. If any tool returns an error about a missing graph, inform the user and ask them to open Vivian and scan their workspace first.
+AUTO-UPDATE: Call watch_workspace(workspace_root) once at the start of a session to keep the graph always up to date.
+The watcher will automatically rebuild the graph in the background whenever source files change (with a 2-second debounce).
+If the watcher is not active, you can still call get_workspace_graph — but results may be stale if files have changed since the last scan.
 """
 )
 
 _NO_GRAPH_MSG = (
     "ERROR: No Vivian graph found for this workspace. "
-    "Please open the Vivian panel in VS Code and run a scan first, then retry."
+    "Please call watch_workspace(workspace_root) first, or open the Vivian panel in VS Code and run a scan."
 )
+
+_watcher_registry: dict[str, Observer] = {}
+_rebuild_timers: dict[str, threading.Timer] = {}
+_rebuild_lock = threading.Lock()
+
+DEBOUNCE_SECONDS = 2.0
+
+class _SourceFileEventHandler(FileSystemEventHandler):
+    """Watches a workspace and triggers a debounced graph rebuild on any source file change."""
+
+    def __init__(self, workspace_root: str):
+        super().__init__()
+        self.workspace_root = workspace_root
+
+    def on_any_event(self, event):
+        if event.is_directory:
+            return
+        src_path = getattr(event, "src_path", "") or ""
+        ext = Path(src_path).suffix.lower()
+        if ext not in SUPPORTED_EXTENSIONS:
+            return
+        _schedule_rebuild(self.workspace_root)
+
+
+def _schedule_rebuild(workspace_root: str):
+    """Cancels any pending rebuild timer and schedules a new one (debounce)."""
+    with _rebuild_lock:
+        existing = _rebuild_timers.get(workspace_root)
+        if existing:
+            existing.cancel()
+        timer = threading.Timer(DEBOUNCE_SECONDS, _do_rebuild, args=[workspace_root])
+        timer.daemon = True
+        timer.start()
+        _rebuild_timers[workspace_root] = timer
+
+
+def _do_rebuild(workspace_root: str):
+    """Runs an incremental graph rebuild and saves cache. Called in background thread."""
+    try:
+        print(f"[Vivian Watcher] Incremental rebuild for: {workspace_root}")
+        graph = build_incremental_graph(workspace_root)
+        print(f"[Vivian Watcher] Graph updated for: {workspace_root}")
+    except Exception as e:
+        print(f"[Vivian Watcher] Rebuild error for {workspace_root}: {e}")
+    finally:
+        with _rebuild_lock:
+            _rebuild_timers.pop(workspace_root, None)
+
+
+# ──────────────────────────────────────────────
+# MCP Tools
+# ──────────────────────────────────────────────
+
+@mcp.tool()
+def watch_workspace(workspace_root: str) -> str:
+    """
+    Starts auto-watching the given workspace_root for file changes.
+    Whenever a source file is saved, the Vivian knowledge graph is automatically
+    rebuilt in the background (with a 2-second debounce after the last change).
+
+    Also builds the initial graph immediately if no cache exists yet.
+
+    Call this ONCE at the beginning of a session to keep all graph tools up to date.
+    Returns a status string indicating success or failure.
+    """
+    if not _WATCHDOG_AVAILABLE:
+        return (
+            "ERROR: 'watchdog' package is not installed. "
+            "Run `pip install watchdog` in the Vivian Server environment and restart."
+        )
+
+    workspace_root = str(Path(workspace_root).resolve())
+
+    # Build initial graph if missing (incremental builder handles the full-build fallback)
+    if not load_cache(workspace_root):
+        try:
+            print(f"[Vivian Watcher] No cache found — building initial graph for: {workspace_root}")
+            build_incremental_graph(workspace_root)
+        except Exception as e:
+            return f"ERROR: Failed to build initial graph: {e}"
+
+    # Stop existing watcher if any
+    if workspace_root in _watcher_registry:
+        try:
+            _watcher_registry[workspace_root].stop()
+            _watcher_registry[workspace_root].join(timeout=2)
+        except Exception:
+            pass
+
+    # Start new observer
+    handler = _SourceFileEventHandler(workspace_root)
+    observer = Observer()
+    observer.schedule(handler, path=workspace_root, recursive=True)
+    observer.daemon = True
+    observer.start()
+    _watcher_registry[workspace_root] = observer
+
+    return (
+        f"Watching '{workspace_root}' for changes. "
+        f"Graph will auto-rebuild {DEBOUNCE_SECONDS}s after any source file is saved."
+    )
+
+
+@mcp.tool()
+def stop_watch_workspace(workspace_root: str) -> str:
+    """
+    Stops the auto-watcher for the given workspace_root.
+    The graph will no longer auto-rebuild when files change.
+    """
+    workspace_root = str(Path(workspace_root).resolve())
+    observer = _watcher_registry.pop(workspace_root, None)
+    if not observer:
+        return f"No active watcher found for '{workspace_root}'."
+    try:
+        observer.stop()
+        observer.join(timeout=2)
+    except Exception as e:
+        return f"Watcher stopped with warning: {e}"
+    return f"Watcher stopped for '{workspace_root}'."
+
+
+@mcp.tool()
+def get_watch_status(workspace_root: str) -> str:
+    """
+    Returns whether the auto-watcher is currently active for the given workspace_root,
+    and whether a rebuild is pending.
+    """
+    workspace_root = str(Path(workspace_root).resolve())
+    is_watching = workspace_root in _watcher_registry and _watcher_registry[workspace_root].is_alive()
+    is_rebuilding = workspace_root in _rebuild_timers
+
+    if is_watching:
+        status = f"ACTIVE — watching '{workspace_root}'"
+        if is_rebuilding:
+            status += " (rebuild pending...)"
+        return status
+    return f"INACTIVE — no watcher running for '{workspace_root}'."
+
+
+@mcp.tool()
+def rebuild_graph_now(workspace_root: str) -> str:
+    """
+    Manually triggers an immediate graph rebuild for the given workspace_root.
+    Useful if you want to force a refresh without waiting for a file change event.
+    """
+    workspace_root = str(Path(workspace_root).resolve())
+    try:
+        print(f"[Vivian] Manual incremental rebuild for: {workspace_root}")
+        graph = build_incremental_graph(workspace_root)
+        nodes = len(graph.get("nodes", []))
+        rels = len(graph.get("relationships", []))
+        return f"Graph rebuilt successfully. {nodes} nodes, {rels} relationships."
+    except Exception as e:
+        return f"ERROR: Rebuild failed: {e}"
+
 
 @mcp.tool()
 def get_workspace_graph(workspace_root: str) -> str:
@@ -26,9 +195,8 @@ def get_workspace_graph(workspace_root: str) -> str:
     Retrieves the cached Vivian structural knowledge graph for the given workspace_root.
     Returns the graph as a JSON string containing nodes and relationships.
 
-    NOTE: The graph must be generated first by opening the Vivian panel in VS Code
-    and clicking 'Scan'. This tool only reads the cached result — it does not build
-    the graph automatically.
+    TIP: Call watch_workspace(workspace_root) once at the start of a session so this
+    cache is always kept fresh automatically.
     """
     graph = load_cache(workspace_root)
     if not graph:
@@ -40,9 +208,6 @@ def get_node_connections(workspace_root: str, node_id: str) -> str:
     """
     Finds all incoming and outgoing edges for a specific node in the Vivian knowledge graph.
     Returns a JSON list of relationships connecting to this node.
-
-    NOTE: The graph must be generated first by opening the Vivian panel in VS Code
-    and clicking 'Scan'. This tool only reads the cached result.
     """
     graph_data = load_cache(workspace_root)
     if not graph_data:
@@ -73,9 +238,6 @@ def search_graph_nodes(workspace_root: str, query: str) -> str:
     """
     Searches the Vivian knowledge graph nodes for the given query string.
     Matches node properties like name, label, or filePath.
-
-    NOTE: The graph must be generated first by opening the Vivian panel in VS Code
-    and clicking 'Scan'. This tool only reads the cached result.
     """
     graph_data = load_cache(workspace_root)
     if not graph_data:
@@ -102,9 +264,6 @@ def search_graph_nodes(workspace_root: str, query: str) -> str:
 def get_project_stats(workspace_root: str) -> str:
     """
     Returns a high-level statistical overview of the codebase (total files, functions, classes).
-
-    NOTE: The graph must be generated first by opening the Vivian panel in VS Code
-    and clicking 'Scan'. This tool only reads the cached result.
     """
     try:
         graph = load_cache(workspace_root)
@@ -124,9 +283,6 @@ def get_project_stats(workspace_root: str) -> str:
 def get_file_details(workspace_root: str, filepath: str) -> str:
     """
     Returns the details of a specific file, including its classes, functions, and imports.
-
-    NOTE: The graph must be generated first by opening the Vivian panel in VS Code
-    and clicking 'Scan'. This tool only reads the cached result.
     """
     try:
         graph = load_cache(workspace_root)
@@ -162,9 +318,6 @@ def get_file_details(workspace_root: str, filepath: str) -> str:
 def find_symbol(workspace_root: str, symbol_name: str) -> str:
     """
     Searches the graph for a specific class or function and returns exactly where it is defined.
-
-    NOTE: The graph must be generated first by opening the Vivian panel in VS Code
-    and clicking 'Scan'. This tool only reads the cached result.
     """
     try:
         graph = load_cache(workspace_root)
@@ -191,9 +344,6 @@ def find_symbol(workspace_root: str, symbol_name: str) -> str:
 def get_callers(workspace_root: str, function_id: str) -> str:
     """
     Finds all files/functions that call a specific function. Provide the full function ID (e.g. 'src/main.ts::myFunc').
-
-    NOTE: The graph must be generated first by opening the Vivian panel in VS Code
-    and clicking 'Scan'. This tool only reads the cursor/cached result.
     """
     try:
         graph = load_cache(workspace_root)
