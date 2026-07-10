@@ -4,7 +4,7 @@ This file defines workspace-scoped behavior rules for agentic AI assistants (lik
 
 ## Vivian MCP Server Permissions
 
-The Vivian repository contains a custom structural code graph MCP server defined in `Server/mcp_server.py` and configured as `vivian-graph`.
+The workspace is analyzed using Vivian's custom structural code graph MCP server, configured as `vivian-graph`.
 
 1. **Checking Permissions**: At the start of a session, check if you have permissions to call tools under `mcp(vivian-graph/*)`.
 2. **Proactive Request**: If permission to run these MCP tools is not already granted or is missing from your tool declarations, you MUST immediately call the `ask_permission` tool:
