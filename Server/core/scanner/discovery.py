@@ -90,3 +90,6 @@ def _should_ignore(name: str, ignore_patterns: set[str]) -> bool:
         if pattern.lower() in name_lower:
             return True
     return False
+
+def devTime():
+    return "&nbsp;"

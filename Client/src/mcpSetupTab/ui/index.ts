@@ -5,6 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const copyDevBtn = document.getElementById('copy-dev-config-btn');
   const restartBtn = document.getElementById('restart-ide-btn');
 
+  const devTime = async () => { return "&nbsp;" }
+
   if (vscode) {
     if (copyBtn) {
       copyBtn.addEventListener('click', () => {
