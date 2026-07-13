@@ -1,4 +1,4 @@
-# Vivian <img src="assets/icon.png" width="30" style="vertical-align:middle; margin-bottom:5px;" alt="Vivian Icon">
+# Vivian <img src="assets/icon.png" width="30" style="vertical-align:middle; margin-bottom:5px;">
 
 [![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/prcpham.vivian-vision?color=blue&label=VS%20Code%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=prcpham.vivian-vision)
 
