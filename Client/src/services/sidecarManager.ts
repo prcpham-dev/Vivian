@@ -79,9 +79,9 @@ async function ensureDependencies(serverPath: string): Promise<string> {
   // If the resolved python is not inside the workspace (i.e. it's a global python),
   // let's create a venv to keep things clean.
   if (!pythonPath.includes(rootPath)) {
-    log(`Creating virtual environment in ${serverPath}/venv...`)
+    log(`Creating virtual environment in ${rootPath}/venv...`)
     await new Promise<void>((resolve, reject) => {
-      const p = cp.spawn(pythonPath, ['-m', 'venv', 'venv'], { cwd: serverPath, shell: process.platform === 'win32' })
+      const p = cp.spawn(pythonPath, ['-m', 'venv', 'venv'], { cwd: rootPath, shell: process.platform === 'win32' })
       p.on('error', reject)
       p.on('exit', (code) => (code === 0 ? resolve() : reject(new Error(`Failed to create venv (exit ${code})`))))
     })
