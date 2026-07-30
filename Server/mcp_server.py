@@ -3,6 +3,12 @@ import json
 import threading
 import time
 from pathlib import Path
+
+# Ensure the Server directory is in sys.path so 'core' can be imported reliably
+server_dir = str(Path(__file__).parent.resolve())
+if server_dir not in sys.path:
+    sys.path.insert(0, server_dir)
+
 from mcp.server.fastmcp import FastMCP
 from core.scanner.graph_builder import load_cache, save_cache
 from core.scanner.incremental_graph_builder import build_incremental_graph
@@ -305,6 +311,8 @@ def get_file_details(workspace_root: str, filepath: str) -> str:
         imported_by = [r["sourceId"] for r in rels if r["type"] == "IMPORTS" and r["targetId"] == actual_filepath]
         
         res = [f"File: {actual_filepath}"]
+        folder = props.get("folder")
+        if folder: res.append(f"Folder/Module: {folder}")
         if classes: res.append(f"Classes: {', '.join(classes)}")
         if funcs: res.append(f"Functions: {', '.join(funcs)}")
         if imports: res.append(f"Imports: {', '.join(imports)}")

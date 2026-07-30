@@ -73,11 +73,15 @@ def build_graph(
             except ValueError:
                 pass
         
+        parts = rel_path.split("/")
+        top_folder = parts[0] if len(parts) > 1 else "."
+
         nodes_dict[rel_path] = {
             "id": rel_path,
             "label": "File",
             "properties": {
                 "name": Path(rel_path).name,
+                "folder": top_folder,
                 "functions": parsed.get("functions", []),
                 "classes": parsed.get("classes", []),
                 "interfaces": parsed.get("interfaces", []),
@@ -186,7 +190,7 @@ def build_graph(
             if target_imp in file_contents:
                 add_relationship(relationships, "IMPORTS", rel_path, target_imp)
 
-        _build_directory_hierarchy(rel_path, nodes_dict, relationships)
+        _build_directory_hierarchy(rel_path, nodes_dict, relationships, root)
 
     _track_function_calls_and_inheritance(
         nodes_dict, 
@@ -206,7 +210,7 @@ def build_graph(
     print("Done!")
     return graph
 
-def _build_directory_hierarchy(rel_path: str, nodes_dict: dict, relationships: List[GraphRelationship]):
+def _build_directory_hierarchy(rel_path: str, nodes_dict: dict, relationships: List[GraphRelationship], workspace_root: str = ""):
     parts = rel_path.split("/")
     
     current_id = rel_path
@@ -225,6 +229,22 @@ def _build_directory_hierarchy(rel_path: str, nodes_dict: dict, relationships: L
             
         add_relationship(relationships, "CONTAINS", parent_id, current_id)
         current_id = parent_id
+
+    if workspace_root:
+        root_name = os.path.basename(os.path.normpath(workspace_root)) or "WorkspaceRoot"
+        root_id = f"ROOT::{root_name}"
+        if root_id not in nodes_dict:
+            nodes_dict[root_id] = {
+                "id": root_id,
+                "label": "Folder",
+                "properties": {
+                    "name": root_name,
+                    "filePath": "."
+                }
+            }
+        top_item_id = parts[0] if len(parts) > 1 else rel_path
+        if top_item_id in nodes_dict:
+            add_relationship(relationships, "CONTAINS", root_id, top_item_id)
 
 # Maps file extensions to a language group so we can avoid cross-language false links.
 _LANG_GROUPS: Dict[str, str] = {

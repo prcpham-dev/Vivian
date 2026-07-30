@@ -116,11 +116,15 @@ def _parse_and_insert_file(
         except ValueError:
             pass
 
+    parts = rel_path.split("/")
+    top_folder = parts[0] if len(parts) > 1 else "."
+
     nodes_dict[rel_path] = {
         "id": rel_path,
         "label": "File",
         "properties": {
             "name": Path(rel_path).name,
+            "folder": top_folder,
             "functions":  parsed.get("functions", []),
             "classes":    parsed.get("classes", []),
             "interfaces": parsed.get("interfaces", []),
@@ -214,7 +218,7 @@ def _parse_and_insert_file(
             add_relationship(relationships, "IMPORTS", rel_path, target_rel)
 
     # Directory hierarchy
-    _build_directory_hierarchy(rel_path, nodes_dict, relationships)
+    _build_directory_hierarchy(rel_path, nodes_dict, relationships, workspace_root)
 
 
 def build_incremental_graph(
