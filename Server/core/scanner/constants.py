@@ -4,8 +4,10 @@ DEFAULT_IGNORE_PATTERNS: list[str] = [
     "__pycache__", ".venv", "venv",
     ".next", "out", "coverage",
     "vendor", ".yarn", "pnpm-lock",
-    "generated", "__mocks__", ".turbo", "DS_Store"
-    "storybook-static", ".vivian-cache.json", ".vivian"
+    "generated", "__mocks__", ".turbo", "DS_Store",
+    "storybook-static", ".vivian-cache.json", ".vivian",
+    # .NET / C# / VB.NET build output — can contain tens of thousands of files
+    "bin", "obj", ".vs", ".idea", "packages",
 ]
 
 SUPPORTED_EXTENSIONS: set[str] = {
@@ -18,7 +20,6 @@ SUPPORTED_EXTENSIONS: set[str] = {
 }
 
 DEFAULT_MAX_DEPTH: int = 15
-MAX_FILES: int = 50_000
 
 CACHE_FILE_NAME: str = ".vivian-cache.json"
 GRAPH_FILE_NAME: str = "graph.json"

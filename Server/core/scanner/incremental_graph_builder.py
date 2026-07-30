@@ -252,13 +252,12 @@ def build_incremental_graph(
     if not existing_graph or not old_mtimes:
         print("[IncrementalGraph] No cache — running full build.")
         graph = build_graph(root, ignore_patterns, max_depth)
-        all_files = walk_repository_paths(root, patterns, max_depth, SUPPORTED_EXTENSIONS)
-        _save_mtimes(root, _collect_mtimes(root, all_files))
+        all_mtimes = walk_repository_paths(root, patterns, max_depth, SUPPORTED_EXTENSIONS)
+        _save_mtimes(root, all_mtimes)
         save_cache(root, graph)
         return graph
 
-    current_files = walk_repository_paths(root, patterns, max_depth, SUPPORTED_EXTENSIONS)
-    current_mtimes = _collect_mtimes(root, current_files)
+    current_mtimes = walk_repository_paths(root, patterns, max_depth, SUPPORTED_EXTENSIONS)
 
     old_set = set(old_mtimes)
     new_set = set(current_mtimes)

@@ -1,11 +1,10 @@
 import os
-from typing import List, Optional, Dict
+from typing import Dict, List, Optional, Tuple
 
 from .constants import (
     DEFAULT_IGNORE_PATTERNS,
     SUPPORTED_EXTENSIONS,
     DEFAULT_MAX_DEPTH,
-    MAX_FILES,
 )
 
 def walk_repository_paths(
@@ -13,20 +12,18 @@ def walk_repository_paths(
     ignore_patterns: Optional[List[str]] = None,
     max_depth: int = DEFAULT_MAX_DEPTH,
     supported_extensions: Optional[set[str]] = None,
-) -> List[str]:
+) -> Dict[str, float]:
     """
-    Walk the repository and return a list of relative paths.
+    Walk the repository and return a dict of {relative_path: mtime}.
+    The mtime is read for free from the OS DirEntry cache during the scan,
+    eliminating the need for a second stat() pass.
     """
     ignore = set(ignore_patterns or DEFAULT_IGNORE_PATTERNS)
     exts = supported_extensions or SUPPORTED_EXTENSIONS
     root = os.path.abspath(workspace_root)
 
-    results: List[str] = []
+    results: Dict[str, float] = {}
     _fast_walk(root, root, ignore, exts, max_depth, 0, results)
-
-    if len(results) >= MAX_FILES:
-        print(f"[discovery] WARNING: hit file limit ({MAX_FILES}). "
-              f"Consider narrowing the selected directory.")
 
     return results
 
@@ -57,17 +54,14 @@ def _fast_walk(
     exts: set[str],
     max_depth: int,
     depth: int,
-    results: List[str],
+    results: Dict[str, float],
 ) -> None:
-    if depth > max_depth or len(results) >= MAX_FILES:
+    if depth > max_depth:
         return
 
     try:
         with os.scandir(current_dir) as it:
             for entry in it:
-                if len(results) >= MAX_FILES:
-                    return
-                
                 if _should_ignore(entry.name, ignore):
                     continue
 
@@ -76,20 +70,22 @@ def _fast_walk(
                 elif entry.is_file(follow_symlinks=False):
                     _, ext = os.path.splitext(entry.name)
                     if ext.lower() in exts:
-                        # Convert to relative path and use forward slashes
                         rel_path = os.path.relpath(entry.path, root_dir)
                         rel_path = rel_path.replace(os.sep, "/")
-                        results.append(rel_path)
+                        # Grab mtime from the cached DirEntry stat — zero extra I/O
+                        try:
+                            results[rel_path] = entry.stat(follow_symlinks=False).st_mtime
+                        except OSError:
+                            results[rel_path] = 0.0
     except PermissionError:
         pass
 
 
 def _should_ignore(name: str, ignore_patterns: set[str]) -> bool:
+    # Exact match on the full directory/file name (case-insensitive).
+    # Substring matching caused false positives, e.g. "bin" ignoring "binary_tree".
     name_lower = name.lower()
-    for pattern in ignore_patterns:
-        if pattern.lower() in name_lower:
-            return True
-    return False
+    return name_lower in {p.lower() for p in ignore_patterns}
 
 def devTime():
     return "&nbsp;"

@@ -220,13 +220,13 @@ export function renderGraph(data: GraphData) {
   const cy = height / 2 || 400
 
   simulation = d3.forceSimulation(nodes)
-    .force('link', d3.forceLink(links).id((d: any) => d.id).distance((d: any) => d.type === 'CONTAINS' ? 60 : 120))
-    .force('charge', d3.forceManyBody().strength((d: any) => d.label === 'File' ? -350 : -150))
+    .force('link', d3.forceLink(links).id((d: any) => d.id).distance((d: any) => d.type === 'CONTAINS' ? 40 : 20))
+    .force('charge', d3.forceManyBody().strength((d: any) => d.label === 'File' ? -250 : -100).distanceMax(800).theta(1.5))
     .force('center', d3.forceCenter(cx, cy))
-    .force('collision', d3.forceCollide((d: any) => d.r + 4))
-    .force('x', d3.forceX(cx).strength(0.04))
-    .force('y', d3.forceY(cy).strength(0.04))
-    .alphaDecay(0.03)
+    .force('collision', d3.forceCollide((d: any) => d.r + 6).iterations(1))
+    .force('x', d3.forceX(cx).strength(0.005))
+    .force('y', d3.forceY(cy).strength(0.005))
+    .alphaDecay(0.05)
 
   // ── Links ────────────────────────────
   const link = linksG.selectAll('.link')
@@ -253,7 +253,15 @@ export function renderGraph(data: GraphData) {
   node.append('circle').attr('r', (d: any) => d.r).attr('fill', (d: any) => nodeColors[d.label] || '#aaa')
   node.append('text').attr('dy', (d: any) => d.r + 10).attr('class', 'label-text').text((d: any) => truncate(d.name, 18))
 
+  let tickCount = 0;
+  // Throttle rendering for large graphs to prevent SVG update lag
+  const skipFrames = nodes.length > 500 ? 3 : (nodes.length > 200 ? 2 : 1);
+
   simulation.on('tick', () => {
+    tickCount++;
+    // Always render the final settling frames (alpha < 0.1) so it doesn't look jittery at the end
+    if (tickCount % skipFrames !== 0 && simulation.alpha() > 0.1) return;
+
     link
       .attr('x1', (d: any) => d.source.x).attr('y1', (d: any) => d.source.y)
       .attr('x2', (d: any) => clamp(d.target)).attr('y2', (d: any) => clampY(d.target))
