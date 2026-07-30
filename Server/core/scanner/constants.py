@@ -18,7 +18,7 @@ SUPPORTED_EXTENSIONS: set[str] = {
 }
 
 DEFAULT_MAX_DEPTH: int = 15
-MAX_FILES: int = 2_000
+MAX_FILES: int = 50_000
 
 CACHE_FILE_NAME: str = ".vivian-cache.json"
 GRAPH_FILE_NAME: str = "graph.json"
