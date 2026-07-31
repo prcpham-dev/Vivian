@@ -64,8 +64,20 @@ export class GraphPanel {
       const folders = vscode.workspace.workspaceFolders
       if (folders?.length) {
         const uri = vscode.Uri.joinPath(folders[0].uri, msg.filePath)
-        vscode.window.showTextDocument(uri).then(undefined, () => {
-          vscode.window.showTextDocument(vscode.Uri.file(msg.filePath as string))
+        const options: vscode.TextDocumentShowOptions = {}
+        if (typeof msg.line === 'number' && msg.line > 0) {
+          options.selection = new vscode.Range(msg.line - 1, 0, msg.line - 1, 0)
+        }
+        vscode.window.showTextDocument(uri, options).then(undefined, () => {
+          vscode.window.showTextDocument(vscode.Uri.file(msg.filePath as string), options)
+        })
+      }
+    } else if (msg.command === 'openFolder' && typeof msg.folderPath === 'string') {
+      const folders = vscode.workspace.workspaceFolders
+      if (folders?.length) {
+        const uri = vscode.Uri.joinPath(folders[0].uri, msg.folderPath)
+        vscode.commands.executeCommand('revealInExplorer', uri).then(undefined, () => {
+          vscode.commands.executeCommand('revealInExplorer', vscode.Uri.file(msg.folderPath as string))
         })
       }
     } else if (msg.command === 'log') {

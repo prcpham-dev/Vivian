@@ -16,6 +16,17 @@ _JS_FUNC_RE = re.compile(r"(?:function\s+(\w+)|const\s+(\w+)\s*=\s*(?:async\s*)?
 _TS_ENUM_RE = re.compile(r"enum\s+(\w+)")
 _TS_TYPE_RE = re.compile(r"type\s+(\w+)\s*=\s*(.*)")
 
+# Express: app.get('/path', handler), router.post('/path')
+_EXPRESS_ROUTE_RE = re.compile(
+    r'(?:app|router|server|route)\.(get|post|put|delete|patch|all)\s*\(\s*[\'"]([^\'"]+)[\'"]',
+    re.IGNORECASE
+)
+# NestJS: @Get('/path'), @Post('/path'), @Put, @Delete, @Patch decorators
+_NESTJS_ROUTE_RE = re.compile(
+    r'@(Get|Post|Put|Delete|Patch|All)\s*\(?\s*[\'"]?([^\'"\)]+)?[\'"]?\s*\)?',
+    re.IGNORECASE
+)
+
 def parse_ts_js(content: str):
     functions: List[FunctionDef] = []
     classes: List[ClassDef] = []
@@ -37,11 +48,36 @@ def parse_ts_js(content: str):
         name, ext = m.groups()
         line = content.count('\n', 0, m.start()) + 1
         interfaces.append(InterfaceDef(name=name, extends=[ext.strip()] if ext else [], line=line))
+    lines = content.splitlines()
     for m in _JS_FUNC_RE.finditer(content):
         name = m.group(1) or m.group(2)
         if name:
             line = content.count('\n', 0, m.start()) + 1
-            functions.append(FunctionDef(name=name, params="", returnType="", line=line, calledBy=[], calls=[]))
+            # NestJS: check up to 3 lines back for @Get/@Post decorators
+            api_routes = []
+            start_line = max(0, line - 4)
+            preceding = "\n".join(lines[start_line:line - 1])
+            for rm in _NESTJS_ROUTE_RE.finditer(preceding):
+                verb = rm.group(1).upper()
+                path = (rm.group(2) or "/").strip()
+                if verb == "ALL":
+                    verb = "ANY"
+                api_routes.append({"method": verb, "path": path})
+            entry = FunctionDef(name=name, params="", returnType="", line=line, calledBy=[], calls=[])
+            if api_routes:
+                entry["api_routes"] = api_routes
+            functions.append(entry)
+
+    # Express: app.get('/path', handler) — synthetic route nodes
+    for m in _EXPRESS_ROUTE_RE.finditer(content):
+        verb = m.group(1).upper()
+        path = m.group(2)
+        line = content.count('\n', 0, m.start()) + 1
+        fn_name = f"Route_{verb}_{path.strip('/').replace('/', '_') or 'root'}"
+        entry = FunctionDef(name=fn_name, params="", returnType="", line=line, calledBy=[], calls=[])
+        entry["api_routes"] = [{"method": verb if verb != "ALL" else "ANY", "path": path}]
+        functions.append(entry)
+
     for m in _TS_ENUM_RE.finditer(content):
         line = content.count('\n', 0, m.start()) + 1
         enums.append({"name": m.group(1), "line": line})

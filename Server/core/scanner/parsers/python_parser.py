@@ -1,6 +1,6 @@
 import ast, re
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Any
 
 from ..types import FunctionDef, ClassDef
 
@@ -38,12 +38,25 @@ def parse_python(content: str, file_path: str, workspace_root: str):
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 args = [a.arg for a in node.args.args]
+                # Detect FastAPI / Flask route decorators
+                # e.g. @app.get("/path"), @router.post("/items"), @app.route("/")
+                api_routes = []
+                _HTTP_METHODS = {"get", "post", "put", "patch", "delete", "head", "options", "route"}
+                for dec in node.decorator_list:
+                    # @app.get("/path") or @router.post("/path")
+                    if isinstance(dec, ast.Call) and isinstance(dec.func, ast.Attribute):
+                        method = dec.func.attr.lower()
+                        if method in _HTTP_METHODS and dec.args:
+                            first = dec.args[0]
+                            if isinstance(first, ast.Constant) and isinstance(first.value, str):
+                                api_routes.append({"method": method.upper() if method != "route" else "ANY", "path": first.value})
                 functions.append({
                     "name": node.name,
                     "params": ", ".join(args),
                     "returnType": "",
                     "line": node.lineno,
-                    "calledBy": [], "calls": []
+                    "calledBy": [], "calls": [],
+                    **(({"api_routes": api_routes}) if api_routes else {})
                 })
             elif isinstance(node, ast.ClassDef):
                 bases = []

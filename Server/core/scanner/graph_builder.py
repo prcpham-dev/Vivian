@@ -122,7 +122,7 @@ def build_graph(
                     "line": func.get('line', 0)
                 }
             }
-            add_relationship(relationships, "CONTAINS", parent_id, func_id)
+            add_relationship(relationships, "CONTAINS", parent_id, func_id, reason="ast_scope")
             
         for cls in parsed.get("classes", []):
             cls_id = f"{rel_path}::{cls['name']}"
@@ -134,7 +134,7 @@ def build_graph(
                     "line": cls.get('line', 0)
                 }
             }
-            add_relationship(relationships, "CONTAINS", rel_path, cls_id)
+            add_relationship(relationships, "CONTAINS", rel_path, cls_id, reason="ast_scope")
             class_locations.setdefault(cls['name'], []).append(rel_path)
             
         for intf in parsed.get("interfaces", []):
@@ -147,7 +147,7 @@ def build_graph(
                     "line": intf.get('line', 0)
                 }
             }
-            add_relationship(relationships, "CONTAINS", rel_path, intf_id)
+            add_relationship(relationships, "CONTAINS", rel_path, intf_id, reason="ast_scope")
             class_locations.setdefault(intf['name'], []).append(rel_path)
 
         for struct in parsed.get("structs", []):
@@ -160,7 +160,7 @@ def build_graph(
                     "line": struct.get('line', 0)
                 }
             }
-            add_relationship(relationships, "CONTAINS", rel_path, struct_id)
+            add_relationship(relationships, "CONTAINS", rel_path, struct_id, reason="ast_scope")
 
         for enum_def in parsed.get("enums", []):
             enum_id = f"{rel_path}::{enum_def['name']}"
@@ -172,7 +172,7 @@ def build_graph(
                     "line": enum_def.get('line', 0)
                 }
             }
-            add_relationship(relationships, "CONTAINS", rel_path, enum_id)
+            add_relationship(relationships, "CONTAINS", rel_path, enum_id, reason="ast_scope")
 
         for record in parsed.get("records", []):
             record_id = f"{rel_path}::{record['name']}"
@@ -184,11 +184,11 @@ def build_graph(
                     "line": record.get('line', 0)
                 }
             }
-            add_relationship(relationships, "CONTAINS", rel_path, record_id)
+            add_relationship(relationships, "CONTAINS", rel_path, record_id, reason="ast_scope")
 
         for target_imp in resolved_imports_rel:
             if target_imp in file_contents:
-                add_relationship(relationships, "IMPORTS", rel_path, target_imp)
+                add_relationship(relationships, "IMPORTS", rel_path, target_imp, reason="ast_import")
 
         _build_directory_hierarchy(rel_path, nodes_dict, relationships, root)
 
@@ -227,7 +227,7 @@ def _build_directory_hierarchy(rel_path: str, nodes_dict: dict, relationships: L
                 }
             }
             
-        add_relationship(relationships, "CONTAINS", parent_id, current_id)
+        add_relationship(relationships, "CONTAINS", parent_id, current_id, reason="dir_hierarchy")
         current_id = parent_id
 
     if workspace_root:
@@ -244,7 +244,7 @@ def _build_directory_hierarchy(rel_path: str, nodes_dict: dict, relationships: L
             }
         top_item_id = parts[0] if len(parts) > 1 else rel_path
         if top_item_id in nodes_dict:
-            add_relationship(relationships, "CONTAINS", root_id, top_item_id)
+            add_relationship(relationships, "CONTAINS", root_id, top_item_id, reason="dir_hierarchy")
 
 # Maps file extensions to a language group so we can avoid cross-language false links.
 _LANG_GROUPS: Dict[str, str] = {
@@ -314,7 +314,7 @@ def _track_function_calls_and_inheritance(
                 base_loc = _resolve_class_location(base, node_id, imported_files, class_locations)
                 if base_loc:
                     base_id = f"{base_loc}::{base}"
-                    add_relationship(relationships, "INHERITS", c_id, base_id)
+                    add_relationship(relationships, "INHERITS", c_id, base_id, reason="ast_extends")
 
         # For interfaces
         for i in node["properties"].get("interfaces", []):
@@ -323,7 +323,7 @@ def _track_function_calls_and_inheritance(
                 base_loc = _resolve_class_location(base, node_id, imported_files, class_locations)
                 if base_loc:
                     base_id = f"{base_loc}::{base}"
-                    add_relationship(relationships, "INHERITS", i_id, base_id)
+                    add_relationship(relationships, "INHERITS", i_id, base_id, reason="ast_extends")
 
     # 2. Function Calls
     for src, targets in imports_map.items():
@@ -360,7 +360,7 @@ def _track_function_calls_and_inheritance(
                     if caller_func:
                         caller_id = f"{src}::{caller_func['name']}"
                         func.setdefault("calledBy", []).append(caller_id)
-                        add_relationship(relationships, "CALLS", caller_id, func_id)
+                        add_relationship(relationships, "CALLS", caller_id, func_id, reason="ast_call")
 
 def save_graph_file(workspace_root: str, graph: KnowledgeGraph) -> None:
     graph_path = Path(workspace_root) / GRAPH_FILE_NAME

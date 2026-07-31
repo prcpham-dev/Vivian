@@ -192,6 +192,7 @@ export function renderGraph(data: GraphData) {
     label: n.label,
     name: n.properties.name,
     filePath: n.properties.filePath,
+    line: n.properties.line,
     functions: n.properties.functions || [],
     classes: n.properties.classes || [],
     interfaces: n.properties.interfaces || [],
@@ -246,6 +247,15 @@ export function renderGraph(data: GraphData) {
       .on('drag', dragged)
       .on('end', dragEnd))
     .on('click', (event: any, d: any) => { event.stopPropagation(); selectNode(d, node, link) })
+    .on('dblclick', (event: any, d: any) => {
+      event.stopPropagation()
+      if (d.label === 'Folder') {
+        vscode.postMessage({ command: 'openFolder', folderPath: d.id })
+      } else {
+        const actualPath = d.filePath || d.id.split('::')[0]
+        vscode.postMessage({ command: 'openFile', filePath: actualPath, line: d.line })
+      }
+    })
     .on('mouseover', showTooltip)
     .on('mousemove', moveTooltip)
     .on('mouseout', hideTooltip)
@@ -429,8 +439,18 @@ function showInfoPanel(d: any) {
   pathEl.textContent = d.filePath || d.id
 
   const openBtn = document.getElementById('open-file-btn')!
-  openBtn.style.display = (d.label === 'File') ? 'block' : 'none'
-  openBtn.onclick = () => vscode.postMessage({ command: 'openFile', filePath: d.filePath || d.id })
+  if (d.label === 'Folder') {
+    openBtn.style.display = 'block'
+    openBtn.textContent = 'Reveal in Explorer'
+    openBtn.onclick = () => vscode.postMessage({ command: 'openFolder', folderPath: d.id })
+  } else {
+    openBtn.style.display = 'block'
+    openBtn.textContent = 'Open in Editor'
+    openBtn.onclick = () => {
+      const actualPath = d.filePath || d.id.split('::')[0]
+      vscode.postMessage({ command: 'openFile', filePath: actualPath, line: d.line })
+    }
+  }
 
   // Functions
   const funcEl = document.getElementById('info-functions')!
@@ -478,12 +498,15 @@ function showInfoPanel(d: any) {
     importedByEl.innerHTML = ''
   }
 
-  // Click to pan to related node
+  // Click to pan and select related node
   panel.querySelectorAll('.rel-item').forEach(el => {
     el.addEventListener('click', () => {
       const targetId = (el as HTMLElement).dataset.id
       const targetDatum = nodesG.selectAll('.node').filter((n: any) => n.id === targetId).datum()
-      if (targetDatum) panToNode(targetDatum)
+      if (targetDatum) {
+        panToNode(targetDatum)
+        selectNode(targetDatum, null, null)
+      }
     })
   })
 }

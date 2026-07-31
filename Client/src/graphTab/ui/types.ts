@@ -22,9 +22,13 @@ export interface D3Node {
   label: string
   name: string
   filePath: string
+  line?: number
   functions: any[]
   classes: any[]
   interfaces: any[]
+  structs?: any[]
+  enums?: any[]
+  records?: any[]
   r: number
   x?: number
   y?: number

@@ -10,6 +10,16 @@ _GO_STRUCT_RE = re.compile(r'type\s+(\w+)\s+struct')
 _GO_INTF_RE = re.compile(r'type\s+(\w+)\s+interface')
 _GO_FUNC_RE = re.compile(r'func\s+(?:\([^)]+\)\s+)?(\w+)')
 
+# Go HTTP route registration patterns:
+# stdlib: http.HandleFunc("/path", handler)
+# Gin: r.GET("/path", handler) / router.POST("/path", handler)
+# Chi/Echo: r.Get("/path", handler)
+# Gorilla Mux: router.HandleFunc("/path", handler).Methods("GET")
+_GO_ROUTE_RE = re.compile(
+    r'(?:\w+)\.(?:HandleFunc|(GET|POST|PUT|DELETE|PATCH|Head|Options|get|post|put|delete|patch))'
+    r'\s*\(\s*"([^"]+)"',
+)
+
 def parse_go(content: str):
     functions: List[FunctionDef] = []
     classes: List[ClassDef] = []
@@ -29,6 +39,16 @@ def parse_go(content: str):
     for m in _GO_FUNC_RE.finditer(content):
         line = content.count('\n', 0, m.start()) + 1
         functions.append(FunctionDef(name=m.group(1), params="", returnType="", line=line, calledBy=[], calls=[]))
+
+    # Detect route registrations as synthetic function nodes
+    for m in _GO_ROUTE_RE.finditer(content):
+        verb = (m.group(1) or "ANY").upper()
+        path = m.group(2)
+        line = content.count('\n', 0, m.start()) + 1
+        fn_name = f"Route_{verb}_{path.strip('/').replace('/', '_') or 'root'}"
+        entry = FunctionDef(name=fn_name, params="", returnType="", line=line, calledBy=[], calls=[])
+        entry["api_routes"] = [{"method": verb, "path": path}]
+        functions.append(entry)
             
     return functions, classes, interfaces, raw_imports
 
