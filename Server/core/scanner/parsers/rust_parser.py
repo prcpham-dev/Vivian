@@ -4,6 +4,34 @@ from typing import List
 
 from ..types import FunctionDef, ClassDef
 
+# ── HTTP client call detection ──────────────────────────────────────────
+# reqwest::get("/path").await, reqwest::Client::new().post("/path")
+_RS_REQWEST_FN_RE = re.compile(
+    r'reqwest::(get|post|put|delete|patch)\s*\(\s*"([^"]+)"',
+    re.IGNORECASE
+)
+# client.get("/path").send() — builder pattern
+_RS_CLIENT_BUILDER_RE = re.compile(
+    r'(?:client|self)\.(get|post|put|delete|patch)\s*\(\s*"([^"]+)"',
+    re.IGNORECASE
+)
+
+def _extract_rust_api_calls(content: str) -> list:
+    api_calls = []
+    seen = set()
+    def _add(method: str, raw: str):
+        frag = raw.strip()
+        if not frag or len(frag) < 2: return
+        key = (method.upper(), frag)
+        if key not in seen:
+            seen.add(key)
+            api_calls.append({"method": method.upper(), "path_fragment": frag})
+    for m in _RS_REQWEST_FN_RE.finditer(content):
+        _add(m.group(1), m.group(2))
+    for m in _RS_CLIENT_BUILDER_RE.finditer(content):
+        _add(m.group(1), m.group(2))
+    return api_calls
+
 _RS_MOD_RE = re.compile(r"^\s*(?:pub\s+)?mod\s+(\w+)\s*;", re.MULTILINE)
 _RS_STRUCT_RE = re.compile(r"struct\s+(\w+)")
 _RS_FUNC_RE = re.compile(r"fn\s+(\w+)")

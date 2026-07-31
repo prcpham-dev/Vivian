@@ -27,6 +27,37 @@ _NESTJS_ROUTE_RE = re.compile(
     re.IGNORECASE
 )
 
+# ── Frontend API call detection ──────────────────────────────────────────────
+# fetch('/api/users') or fetch('/api/users', { method: 'POST' })
+_FETCH_RE = re.compile(
+    r'fetch\s*\(\s*[`\'"]((?:[^\'"` $]|\$\{[^}]+\})+)[`\'"]'
+    r'(?:\s*,\s*\{[^}]*?method\s*:\s*[\'"]([A-Za-z]+)[\'"])?',
+    re.IGNORECASE | re.DOTALL
+)
+# axios.get('/path'), axios.post('/path'), etc.
+_AXIOS_METHOD_RE = re.compile(
+    r'axios\.(get|post|put|delete|patch)\s*\(\s*[`\'"]((?:[^\'"` $]|\$\{[^}]+\})+)[`\'"]',
+    re.IGNORECASE
+)
+# axios({ url: '/path', method: 'post' }) or axios({ method: 'post', url: '/path' })
+_AXIOS_OBJ_RE = re.compile(
+    r'axios\s*\(\s*\{[^}]*?url\s*:\s*[`\'"]((?:[^\'"` $]|\$\{[^}]+\})+)[`\'"][^}]*?'
+    r'method\s*:\s*[\'"]([A-Za-z]+)[\'"]|'
+    r'axios\s*\(\s*\{[^}]*?method\s*:\s*[\'"]([A-Za-z]+)[\'"][^}]*?'
+    r'url\s*:\s*[`\'"]((?:[^\'"` $]|\$\{[^}]+\})+)[`\'"]',
+    re.IGNORECASE | re.DOTALL
+)
+# useQuery / useMutation / useSWR / $http — cover common patterns
+_GENERIC_HTTP_RE = re.compile(
+    r'(?:useQuery|useMutation|useSWR|\$http\.(?:get|post|put|delete|patch)|'
+    r'http\.(?:get|post|put|delete|patch))\s*\(?\s*[`\'"]((?:[^\'"` $]|\$\{[^}]+\})+)[`\'"]',
+    re.IGNORECASE
+)
+
+def _strip_template_vars(path: str) -> str:
+    """Remove ${...} from template literals to get the static path fragment."""
+    return re.sub(r'\$\{[^}]+\}', '', path).rstrip('/')
+
 def parse_ts_js(content: str):
     functions: List[FunctionDef] = []
     classes: List[ClassDef] = []
@@ -89,7 +120,34 @@ def parse_ts_js(content: str):
         else:
             structs.append({"name": name, "line": line})
                 
-    return functions, classes, interfaces, structs, enums, records, raw_imports
+    # ── Frontend API call extraction ──────────────────────────────────────────
+    api_calls: List[Dict] = []
+    seen_calls: set = set()
+
+    def _add_call(method: str, raw_path: str):
+        fragment = _strip_template_vars(raw_path).strip()
+        if not fragment or fragment in ('//', ''):
+            return
+        key = (method.upper(), fragment)
+        if key not in seen_calls:
+            seen_calls.add(key)
+            api_calls.append({"method": method.upper(), "path_fragment": fragment})
+
+    for m in _FETCH_RE.finditer(content):
+        method = m.group(2) or "GET"
+        _add_call(method, m.group(1))
+    for m in _AXIOS_METHOD_RE.finditer(content):
+        _add_call(m.group(1), m.group(2))
+    for m in _AXIOS_OBJ_RE.finditer(content):
+        # Two capture layouts from the alternation
+        if m.group(1) and m.group(2):
+            _add_call(m.group(2), m.group(1))
+        elif m.group(3) and m.group(4):
+            _add_call(m.group(3), m.group(4))
+    for m in _GENERIC_HTTP_RE.finditer(content):
+        _add_call("GET", m.group(1))  # default GET; method is baked into the fn name
+
+    return functions, classes, interfaces, structs, enums, records, raw_imports, api_calls
 
 _JS_EXTENSIONS = [".ts", ".tsx", ".js", ".jsx", ".vue", ".mts", ".cts"]
 

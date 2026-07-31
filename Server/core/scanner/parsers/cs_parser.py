@@ -4,6 +4,44 @@ from typing import List
 
 from ..types import FunctionDef, ClassDef, InterfaceDef
 
+# ── HTTP client call detection ──────────────────────────────────────────
+# HttpClient: _http.GetAsync("/path"), client.PostAsync("/path", content)
+_CS_HTTPCLIENT_RE = re.compile(
+    r'\.(GetAsync|PostAsync|PutAsync|DeleteAsync|PatchAsync|SendAsync|GetFromJsonAsync|PostAsJsonAsync)'
+    r'\s*(?:<[^>]+>)?\s*\(\s*\$?"([^"]+)"',
+    re.IGNORECASE
+)
+# Refit interface attributes: [Get("/path")], [Post("/path")]
+_CS_REFIT_RE = re.compile(
+    r'\[(Get|Post|Put|Delete|Patch)\s*\(\s*"([^"]+)"',
+    re.IGNORECASE
+)
+
+_CS_VERB_MAP = {
+    "getasync": "GET", "getfromjsonasync": "GET",
+    "postasync": "POST", "postasjsonasync": "POST",
+    "putasync": "PUT", "deleteasync": "DELETE",
+    "patchasync": "PATCH", "sendasync": "ANY",
+}
+
+def _extract_cs_api_calls(content: str) -> list:
+    api_calls = []
+    seen = set()
+    def _add(method: str, raw: str):
+        # strip interpolation {expr}
+        frag = re.sub(r'\{[^}]+\}', '', raw).strip().rstrip('/')
+        if not frag or len(frag) < 2: return
+        key = (method.upper(), frag)
+        if key not in seen:
+            seen.add(key)
+            api_calls.append({"method": method.upper(), "path_fragment": frag})
+    for m in _CS_HTTPCLIENT_RE.finditer(content):
+        verb = _CS_VERB_MAP.get(m.group(1).lower(), "ANY")
+        _add(verb, m.group(2))
+    for m in _CS_REFIT_RE.finditer(content):
+        _add(m.group(1), m.group(2))
+    return api_calls
+
 _CS_IMPORT_RE = re.compile(r'^\s*using\s+([\w\.]+);', re.MULTILINE)
 _CS_CLASS_RE = re.compile(r'class\s+(\w+)(?:\s*:\s*([\w\.,\s<>]+))?')
 _CS_INTF_RE = re.compile(r'interface\s+(\w+)(?:\s*:\s*([\w\.,\s<>]+))?')

@@ -7,6 +7,28 @@ from ..types import FunctionDef, ClassDef
 _PY_FROM_RE = re.compile(r"^from\s+(\.*)(\w[\w.]*|)\s+import\s+", re.MULTILINE)
 _PY_IMPORT_RE = re.compile(r"^import\s+([\w.]+)", re.MULTILINE)
 
+# ── HTTP client call detection ──────────────────────────────────────────
+# requests.get('/path'), httpx.post('/path'), session.get('/path')
+_PY_HTTP_RE = re.compile(
+    r'(?:requests|httpx|session|client|self\.client|self\.session|aiohttp)'
+    r'\.(get|post|put|delete|patch|request)\s*\(\s*[f\'"]((?:[^\'"\\]|\\.)+)[\'"]',
+    re.IGNORECASE
+)
+# aiohttp.ClientSession().get('url'), async with session.get('url')
+_PY_AIOHTTP_RE = re.compile(
+    r'session\.(get|post|put|delete|patch)\s*\(\s*[f\'"]((?:[^\'"\\]|\\.)+)[\'"]',
+    re.IGNORECASE
+)
+# urllib.request.urlopen('/path')
+_PY_URLLIB_RE = re.compile(
+    r'urlopen\s*\(\s*[f\'"]((?:[^\'"\\]|\\.)+)[\'"]',
+    re.IGNORECASE
+)
+
+def _py_strip_fstring(path: str) -> str:
+    """Remove f-string {expr} to get static path fragment."""
+    return re.sub(r'\{[^}]+\}', '', path).rstrip('/')
+
 def parse_python(content: str, file_path: str, workspace_root: str):
     functions: List[FunctionDef] = []
     classes: List[ClassDef] = []
@@ -135,6 +157,28 @@ def parse_python(content: str, file_path: str, workspace_root: str):
                 imports.append(_try_py(candidate))
                 
     return functions, classes, structs, enums, records, imports
+
+def _extract_py_api_calls(content: str) -> list:
+    """Scan Python file content for outgoing HTTP client calls."""
+    api_calls = []
+    seen = set()
+
+    def _add(method: str, raw: str):
+        fragment = _py_strip_fstring(raw).strip()
+        if not fragment or len(fragment) < 2:
+            return
+        key = (method.upper(), fragment)
+        if key not in seen:
+            seen.add(key)
+            api_calls.append({"method": method.upper(), "path_fragment": fragment})
+
+    for m in _PY_HTTP_RE.finditer(content):
+        _add(m.group(1), m.group(2))
+    for m in _PY_AIOHTTP_RE.finditer(content):
+        _add(m.group(1), m.group(2))
+    for m in _PY_URLLIB_RE.finditer(content):
+        _add("GET", m.group(1))
+    return api_calls
 
 def _try_py(base: Path) -> Optional[str]:
     p = base.with_suffix(".py")

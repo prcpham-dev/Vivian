@@ -1,7 +1,7 @@
 from typing import List, Literal, TypedDict, Dict, Any
 
 NodeLabel = Literal["File", "Folder", "Class", "Function", "Method", "Interface", "Struct", "Enum", "Record"]
-RelationshipType = Literal["CONTAINS", "IMPORTS", "CALLS", "INHERITS"]
+RelationshipType = Literal["CONTAINS", "IMPORTS", "CALLS", "INHERITS", "CALLS_API"]
 
 class GraphNode(TypedDict):
     id: str
@@ -60,3 +60,4 @@ class ParsedFile(TypedDict, total=False):
     enums: List[EnumDef]
     records: List[RecordDef]
     imports: List[str]
+    api_calls: List[Dict[str, str]]  # [{method, path_fragment}] extracted from fetch/axios

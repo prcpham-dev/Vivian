@@ -17,6 +17,9 @@ SUPPORTED_EXTENSIONS: set[str] = {
     ".rs", ".java",
     ".c", ".cpp", ".h", ".hpp",
     ".cs",
+    ".dart",           # Flutter / Dart
+    ".swift",          # iOS / macOS
+    ".kt", ".kts",     # Android / Kotlin
 }
 
 DEFAULT_MAX_DEPTH: int = 15

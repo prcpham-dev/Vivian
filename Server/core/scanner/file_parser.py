@@ -15,26 +15,40 @@ def parse_file(file_path: str, content: str, workspace_root: str, path_aliases: 
     enums: List[dict] = []
     records: List[dict] = []
     imports: List[str] = []
-    
+    api_calls: List[dict] = []  # frontend HTTP calls, only populated for JS/TS files
+
     if ext == ".py":
         functions, classes, structs, enums, records, imports = parsers.parse_python(content, file_path, workspace_root)
+        api_calls = parsers._extract_py_api_calls(content)
     elif ext in {".ts", ".tsx", ".js", ".jsx"}:
-        functions, classes, interfaces, structs, enums, records, raw_imports = parsers.parse_ts_js(content)
+        functions, classes, interfaces, structs, enums, records, raw_imports, api_calls = parsers.parse_ts_js(content)
         imports = [parsers.resolve_js(file_path, imp, workspace_root, path_aliases) for imp in raw_imports]
     elif ext == ".go":
         functions, classes, interfaces, raw_imports = parsers.parse_go(content)
         imports = parsers.resolve_go_imports(file_path, raw_imports, workspace_root)
     elif ext == ".rs":
         functions, classes, interfaces, imports = parsers.parse_rust(content, file_path)
+        api_calls = parsers._extract_rust_api_calls(content)
     elif ext == ".java":
         functions, classes, interfaces, raw_imports = parsers.parse_java(content)
         imports = parsers.resolve_java_imports(file_path, raw_imports, workspace_root)
+        api_calls = parsers._extract_java_api_calls(content)
     elif ext in {".c", ".cpp", ".h", ".hpp"}:
         functions, classes, interfaces, raw_imports = parsers.parse_cpp(content)
         imports = parsers.resolve_cpp_imports(file_path, raw_imports, workspace_root)
     elif ext == ".cs":
         functions, classes, interfaces, raw_imports = parsers.parse_cs(content)
         imports = parsers.resolve_cs_imports(file_path, raw_imports, workspace_root)
+        api_calls = parsers._extract_cs_api_calls(content)
+    elif ext == ".dart":
+        functions, classes, raw_imports, api_calls = parsers.parse_dart(content)
+        imports = parsers.resolve_dart_imports(file_path, raw_imports, workspace_root)
+    elif ext == ".swift":
+        functions, classes, interfaces, structs, raw_imports, api_calls = parsers.parse_swift(content)
+        # Swift imports are framework names, not resolvable to local files
+    elif ext in {".kt", ".kts"}:
+        functions, classes, interfaces, raw_imports, api_calls = parsers.parse_kotlin(content)
+        imports = parsers.resolve_kotlin_imports(file_path, raw_imports, workspace_root)
         
     # Filter out unresolvable imports
     resolved_imports = [imp for imp in imports if imp is not None]
@@ -46,8 +60,10 @@ def parse_file(file_path: str, content: str, workspace_root: str, path_aliases: 
         structs=structs,
         enums=enums,
         records=records,
-        imports=resolved_imports
+        imports=resolved_imports,
+        api_calls=api_calls
     )
+
 
 _ALIAS_CONFIGS = ["tsconfig.json", "tsconfig.base.json", "jsconfig.json", "tsconfig.paths.json"]
 _COMMENT_RE = re.compile(r"//[^\n]*|/\*.*?\*/", re.DOTALL)

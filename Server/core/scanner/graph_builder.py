@@ -88,6 +88,7 @@ def build_graph(
                 "structs": parsed.get("structs", []),
                 "enums": parsed.get("enums", []),
                 "records": parsed.get("records", []),
+                "api_calls": parsed.get("api_calls", []),
                 "filePath": rel_path
             }
         }
@@ -199,6 +200,8 @@ def build_graph(
         class_locations
     )
 
+    _link_api_calls(nodes_dict, relationships)
+
     node_list = list(nodes_dict.values())
 
     graph = KnowledgeGraph(
@@ -209,6 +212,119 @@ def build_graph(
 
     print("Done!")
     return graph
+
+# ── Heuristic API cross-service matching ─────────────────────────────────────
+
+def _normalize_api_path(path: str) -> str:
+    """Strip path params so /api/users/{id} and /api/users/ match."""
+    p = re.sub(r'\{[^}]+\}', '', path)   # {id}, {userId}
+    p = re.sub(r':<\w+>', '', p)          # :<int> (Flask typed)
+    p = re.sub(r':\w+', '', p)            # :id  (Express-style)
+    p = re.sub(r'<[^>]+>', '', p)         # <int:id> (Flask)
+    p = re.sub(r'\$\{[^}]+\}', '', p)    # ${id} (template literals)
+    p = re.sub(r'//+', '/', p)
+    return p.lower().rstrip('/')
+
+def _path_score(backend_norm: str, frontend_fragment: str) -> float:
+    """Return 0.0-1.0 match quality between a normalized backend path and a frontend fragment."""
+    if not frontend_fragment or not backend_norm:
+        return 0.0
+    # Must share a meaningful path segment (avoid matching '/' to everything)
+    if len(frontend_fragment) < 3:
+        return 0.0
+    if backend_norm == frontend_fragment:
+        return 0.95
+    # Fragment fully contained inside backend path
+    if frontend_fragment in backend_norm:
+        # Reward longer (more specific) fragments
+        specificity = len(frontend_fragment) / max(len(backend_norm), 1)
+        return round(0.70 + 0.15 * specificity, 2)
+    # Prefix containment
+    if backend_norm.startswith(frontend_fragment) or frontend_fragment.startswith(backend_norm):
+        return 0.65
+    return 0.0
+
+def _link_api_calls(
+    nodes: dict,
+    relationships: List[GraphRelationship],
+):
+    """
+    Post-processing pass: match frontend api_calls against backend api_routes.
+    Draws CALLS_API edges from frontend File nodes to backend Function nodes.
+    Confidence reflects match quality; reason is always 'heuristic_api_match'.
+    """
+    # 1. Index all backend api_routes: (METHOD, norm_path) -> function_node_id
+    backend_index: Dict[tuple, str] = {}
+    for node_id, node in nodes.items():
+        if node["label"] not in ("Function", "Method"):
+            continue
+        for route in node.get("properties", {}).get("api_routes", []):
+            method = route.get("method", "ANY").upper()
+            norm = _normalize_api_path(route.get("path", ""))
+            if not norm:
+                continue
+            key = (method, norm)
+            backend_index[key] = node_id
+            if method == "ANY":
+                # Also index as each verb so ANY matches all
+                for verb in ("GET", "POST", "PUT", "DELETE", "PATCH"):
+                    backend_index.setdefault((verb, norm), node_id)
+
+    # Also scan api_routes embedded in File nodes' function lists
+    for node_id, node in nodes.items():
+        if node["label"] != "File":
+            continue
+        for func in node["properties"].get("functions", []):
+            for route in func.get("api_routes", []):
+                method = route.get("method", "ANY").upper()
+                norm = _normalize_api_path(route.get("path", ""))
+                func_node_id = f"{node_id}::{func['name']}"
+                if func_node_id in nodes:
+                    key = (method, norm)
+                    backend_index[key] = func_node_id
+                    if method == "ANY":
+                        for verb in ("GET", "POST", "PUT", "DELETE", "PATCH"):
+                            backend_index.setdefault((verb, norm), func_node_id)
+
+    if not backend_index:
+        return  # No backend routes found — skip pass
+
+    # 2. For each frontend file with api_calls, find best-matching backend route
+    for node_id, node in nodes.items():
+        if node["label"] != "File":
+            continue
+        calls = node["properties"].get("api_calls", [])
+        if not calls:
+            continue
+
+        for call in calls:
+            method = call.get("method", "GET").upper()
+            fragment = _normalize_api_path(call.get("path_fragment", ""))
+            if not fragment:
+                continue
+
+            best_score = 0.0
+            best_target = None
+
+            # Try exact method match first, then ANY
+            for try_method in (method, "ANY"):
+                for (bk_method, bk_path), bk_node_id in backend_index.items():
+                    if bk_method != try_method:
+                        continue
+                    score = _path_score(bk_path, fragment)
+                    if score > best_score:
+                        best_score = score
+                        best_target = bk_node_id
+
+            if best_target and best_score >= 0.65:
+                add_relationship(
+                    relationships,
+                    "CALLS_API",
+                    node_id,
+                    best_target,
+                    confidence=best_score,
+                    reason="heuristic_api_match"
+                )
 
 def _build_directory_hierarchy(rel_path: str, nodes_dict: dict, relationships: List[GraphRelationship], workspace_root: str = ""):
     parts = rel_path.split("/")

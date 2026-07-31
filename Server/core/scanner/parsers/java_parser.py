@@ -4,6 +4,53 @@ from typing import List
 
 from ..types import FunctionDef, ClassDef, InterfaceDef
 
+# ── HTTP client call detection ──────────────────────────────────────────
+# Retrofit: @GET("/path"), @POST("/path") on interface methods
+_JAVA_RETROFIT_RE = re.compile(
+    r'@(GET|POST|PUT|DELETE|PATCH)\s*\(\s*"([^"]+)"',
+    re.IGNORECASE
+)
+# RestTemplate: restTemplate.getForObject("/path", ...) / postForObject
+_JAVA_REST_TEMPLATE_RE = re.compile(
+    r'(?:restTemplate|template)\.(getForObject|getForEntity|postForObject|postForEntity|exchange|delete|put)'
+    r'\s*\(\s*"([^"]+)"',
+    re.IGNORECASE
+)
+# OkHttp: new Request.Builder().url("/path")
+_JAVA_OKHTTP_RE = re.compile(r'\.url\s*\(\s*"([^"]+)"', re.IGNORECASE)
+# WebClient: webClient.get().uri("/path")
+_JAVA_WEBCLIENT_RE = re.compile(
+    r'\.(get|post|put|delete|patch)\s*\(\s*\)\.uri\s*\(\s*"([^"]+)"',
+    re.IGNORECASE
+)
+
+_JAVA_REST_VERB_MAP = {
+    "getforobject": "GET", "getforentity": "GET",
+    "postforobject": "POST", "postforentity": "POST",
+    "delete": "DELETE", "put": "PUT", "exchange": "ANY",
+}
+
+def _extract_java_api_calls(content: str) -> list:
+    api_calls = []
+    seen = set()
+    def _add(method: str, raw: str):
+        frag = raw.strip()
+        if not frag or len(frag) < 2: return
+        key = (method.upper(), frag)
+        if key not in seen:
+            seen.add(key)
+            api_calls.append({"method": method.upper(), "path_fragment": frag})
+    for m in _JAVA_RETROFIT_RE.finditer(content):
+        _add(m.group(1), m.group(2))
+    for m in _JAVA_REST_TEMPLATE_RE.finditer(content):
+        verb = _JAVA_REST_VERB_MAP.get(m.group(1).lower(), "ANY")
+        _add(verb, m.group(2))
+    for m in _JAVA_OKHTTP_RE.finditer(content):
+        _add("ANY", m.group(1))
+    for m in _JAVA_WEBCLIENT_RE.finditer(content):
+        _add(m.group(1), m.group(2))
+    return api_calls
+
 _JAVA_IMPORT_RE = re.compile(r'^\s*import\s+(?:static\s+)?([\w\.]+);', re.MULTILINE)
 _JAVA_CLASS_RE = re.compile(r'class\s+(\w+)(?:\s+extends\s+(\w+))?(?:\s+implements\s+([\w\.,\s]+))?')
 _JAVA_INTF_RE = re.compile(r'interface\s+(\w+)(?:\s+extends\s+([\w\.,\s]+))?')
